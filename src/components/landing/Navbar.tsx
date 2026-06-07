@@ -1,12 +1,12 @@
 const navItems = [
-  { label: 'HOME', href: '#home' },
-  { label: 'PROGRAMS', href: '#programs' },
-  { label: 'PEAK HOURS', href: '#peak-hours' },
-  { label: 'PRICING', href: '#pricing' },
-  { label: 'CONTACT', href: '#contact' },
-]
+  { label: "HOME", href: "#home" },
+  { label: "PROGRAMS", href: "#programs" },
+  { label: "PEAK HOURS", href: "#peak-hours" },
+  { label: "PRICING", href: "#pricing" },
+  { label: "CONTACT", href: "#contact" },
+];
 
-function Navbar() {
+function Navbar({ onOpenLogin }: { onOpenLogin?: () => void }) {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/85 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -32,6 +32,12 @@ function Navbar() {
         <div className="flex items-center gap-2 sm:gap-3">
           <a
             href="/login"
+            onClick={(e) => {
+              if (onOpenLogin) {
+                e.preventDefault();
+                onOpenLogin();
+              }
+            }}
             className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-zinc-100 transition hover:border-lime-300/70 hover:text-lime-300 sm:px-5 sm:text-sm"
           >
             LOGIN
@@ -45,7 +51,7 @@ function Navbar() {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;

@@ -1,13 +1,13 @@
-import Footer from './Footer'
-import Hero from './Hero'
-import Navbar from './Navbar'
-import PeakHoursSection from './PeakHoursSection'
-import ProgramsSection from './ProgramsSection'
+import Footer from "./Footer";
+import Hero from "./Hero";
+import Navbar from "./Navbar";
+import PeakHoursSection from "./PeakHoursSection";
+import ProgramsSection from "./ProgramsSection";
 
-function LandingPage() {
+function LandingPage({ onOpenLogin }: { onOpenLogin?: () => void }) {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      <Navbar />
+      <Navbar onOpenLogin={onOpenLogin} />
       <main>
         <Hero />
         <ProgramsSection />
@@ -15,7 +15,7 @@ function LandingPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
 
-export default LandingPage
+export default LandingPage;
