@@ -20,6 +20,21 @@
 @layer base {
   html {
     color-scheme: dark;
+    scroll-padding-top: 65px; /* alto del navbar sticky */
+    scroll-behavior: smooth;
+  }
+
+  /* Enfoque por sección: solo en pantallas con espacio suficiente para
+     mostrar una sección completa de una vez. En viewports pequeños el
+     flujo normal evita que el contenido quede cortado. */
+  @media (min-width: 768px) and (min-height: 820px) {
+    html {
+      scroll-snap-type: y proximity;
+    }
+
+    main > section {
+      scroll-snap-align: start;
+    }
   }
 
   body {
@@ -28,6 +43,13 @@
 
   ::selection {
     @apply bg-ember/30 text-ink;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+    }
   }
 }
 
@@ -50,7 +72,7 @@
 
   .animate-hero-line {
     opacity: 0;
-    animation: hero-line-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: hero-line-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   /* Cursor del efecto typing */

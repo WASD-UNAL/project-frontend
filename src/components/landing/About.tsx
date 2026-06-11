@@ -1,4 +1,4 @@
-import { Dumbbell, Users, BadgeCheck, Smartphone } from 'lucide-react'
+import { Dumbbell, Users, BadgeCheck, CreditCard } from 'lucide-react'
 
 const features = [
   {
@@ -20,17 +20,20 @@ const features = [
       'Acompañamiento real para que tu rutina avance sin lesiones ni estancamientos.',
   },
   {
-    icon: Smartphone,
-    title: 'Todo desde la app',
+    icon: CreditCard,
+    title: 'Pagos online',
     description:
-      'Revisa tu membresía, tus asistencias y tus rachas de constancia sin pasar por recepción.',
+      'Paga y renueva tu membresía desde la app con tarjeta o PSE, sin filas en recepción ni efectivo.',
   },
 ]
 
 export function About() {
   return (
-    <section id="nosotros" className="border-t border-line">
-      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
+    <section
+      id="nosotros"
+      className="border-t border-line md:flex md:min-h-[calc(100vh-65px)] md:items-center"
+    >
+      <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-20 md:grid-cols-2 md:py-16">
         <div>
           <p className="font-mono text-sm tracking-[0.3em] text-ember uppercase">
             ¿Qué es Gymly?

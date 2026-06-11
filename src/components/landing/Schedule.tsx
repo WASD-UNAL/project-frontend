@@ -8,8 +8,11 @@ const hours = [
 
 export function Schedule() {
   return (
-    <section id="horarios" className="border-t border-line">
-      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
+    <section
+      id="horarios"
+      className="border-t border-line md:flex md:min-h-[calc(100vh-65px)] md:items-center"
+    >
+      <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-20 md:grid-cols-2 md:py-16">
         <div>
           <p className="font-mono text-sm tracking-[0.3em] text-ember uppercase">
             Horarios
@@ -56,7 +59,7 @@ export function Schedule() {
           </div>
 
           <p className="text-sm text-muted">
-            ¿Primera vez en FORJA? Pasa cualquier día y te mostramos las
+            ¿Primera vez en Gymly? Pasa cualquier día y te mostramos las
             instalaciones, sin compromiso.
           </p>
         </div>
