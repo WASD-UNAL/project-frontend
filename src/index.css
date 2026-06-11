@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-bg: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-surface-soft: #242424;
+  --color-ember: #c3f400;
+  --color-ember-soft: #c3f40026;
+  --color-steel: #c8c6c5;
+  --color-ink: #ffffff;
+  --color-muted: #9a9a9a;
+  --color-line: #262626;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-ember/30 text-ink;
+  }
+}
+
+@layer utilities {
+  .rivet {
+    @apply absolute size-2 rounded-full bg-bg/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1px_1px_rgba(0,0,0,0.6)];
+  }
+
+  /* Entrada secuencial de las líneas del titular del Hero */
+  @keyframes hero-line-in {
+    0% {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-hero-line {
+    opacity: 0;
+    animation: hero-line-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* Cursor del efecto typing */
+  @keyframes caret-blink {
+    0%, 45% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .animate-caret {
+    animation: caret-blink 0.9s steps(1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-hero-line {
+      animation: none;
+      opacity: 1;
+    }
+  }
+}
