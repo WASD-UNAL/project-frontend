@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 const links = [
   { href: '#nosotros', label: 'Nosotros' },
   { href: '#planes', label: 'Planes' },
@@ -27,12 +29,12 @@ export function Navbar() {
           ))}
         </nav>
 
-        <a
-          href="#"
+        <Link
+          to="/dashboard"
           className="rounded-full border border-ember/50 px-5 py-2 text-sm font-semibold text-ember transition-colors hover:bg-ember hover:text-bg"
         >
           Iniciar sesión
-        </a>
+        </Link>
       </div>
     </header>
   )
