@@ -15,6 +15,14 @@
   --color-ink: #ffffff;
   --color-muted: #9a9a9a;
   --color-line: #262626;
+
+  /* Semáforo de vigencia de membresía. Colores de ESTADO (no acentos
+     decorativos): el verde reusa el lima de marca (ember), el ámbar y el
+     rojo se reservan solo para el estado de pago que envía el backend. */
+  --color-warn: #f5b301;
+  --color-warn-soft: #f5b30119;
+  --color-danger: #ef4444;
+  --color-danger-soft: #ef444419;
 }
 
 @layer base {
@@ -87,6 +95,32 @@
 
   @media (prefers-reduced-motion: reduce) {
     .animate-hero-line {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* Entrada de las tarjetas del dashboard: aparecen desde abajo con un
+     pequeño escalonado vía --rise-delay. */
+  @keyframes card-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-card-rise {
+    opacity: 0;
+    animation: card-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-card-rise {
       animation: none;
       opacity: 1;
     }

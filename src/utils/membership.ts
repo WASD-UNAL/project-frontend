@@ -1,0 +1,84 @@
+import type {
+  PaymentMethod,
+  PaymentStatus,
+  StatusColor,
+} from '../types/membership'
+
+const dateFmt = new Intl.DateTimeFormat('es-CO', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
+/** "2026-07-18" -> "18 jul 2026" */
+export function formatDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  return dateFmt.format(new Date(y, m - 1, d))
+}
+
+/** Días totales de vigencia entre init y end (para la barra de progreso). */
+export function totalDaysBetween(initIso: string, endIso: string): number {
+  const start = new Date(initIso).getTime()
+  const end = new Date(endIso).getTime()
+  const days = Math.round((end - start) / 86_400_000)
+  return Math.max(days, 1)
+}
+
+interface StatusTheme {
+  /** clase de color de texto */
+  text: string
+  /** clase de borde */
+  border: string
+  /** clase de fondo tenue */
+  bgSoft: string
+  /** clase de relleno de la barra */
+  fill: string
+  /** etiqueta corta del estado */
+  label: string
+}
+
+export const statusThemes: Record<StatusColor, StatusTheme> = {
+  GREEN: {
+    text: 'text-ember',
+    border: 'border-ember',
+    bgSoft: 'bg-ember-soft',
+    fill: 'bg-ember',
+    label: 'Al día',
+  },
+  YELLOW: {
+    text: 'text-warn',
+    border: 'border-warn',
+    bgSoft: 'bg-warn-soft',
+    fill: 'bg-warn',
+    label: 'Por vencer',
+  },
+  RED: {
+    text: 'text-danger',
+    border: 'border-danger',
+    bgSoft: 'bg-danger-soft',
+    fill: 'bg-danger',
+    label: 'Vencida',
+  },
+}
+
+const methodLabels: Record<PaymentMethod, string> = {
+  CASH: 'Efectivo',
+  CARD: 'Tarjeta',
+  TRANSFER: 'Transferencia',
+}
+
+export function paymentMethodLabel(m: PaymentMethod): string {
+  return methodLabels[m]
+}
+
+interface PaymentStatusTheme {
+  label: string
+  text: string
+  dot: string
+}
+
+export const paymentStatusThemes: Record<PaymentStatus, PaymentStatusTheme> = {
+  SUCCESSFUL: { label: 'Pagado', text: 'text-ember', dot: 'bg-ember' },
+  PENDING: { label: 'Pendiente', text: 'text-warn', dot: 'bg-warn' },
+  REJECTED: { label: 'Rechazado', text: 'text-danger', dot: 'bg-danger' },
+}
