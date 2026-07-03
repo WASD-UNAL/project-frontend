@@ -2,6 +2,7 @@ const links = [
   { href: '#nosotros', label: 'Nosotros' },
   { href: '#planes', label: 'Planes' },
   { href: '#horarios', label: 'Horarios' },
+  { href: '#afluencia', label: 'Afluencia' },
 ]
 
 export function Navbar() {
