@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { LoginModal } from './LoginModal'
 
 const links = [
   { href: '#nosotros', label: 'Nosotros' },
@@ -8,6 +9,9 @@ const links = [
 ]
 
 export function Navbar() {
+  // Estado de visibilidad del formulario de inicio de sesión.
+  const [loginOpen, setLoginOpen] = useState(false)
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -30,13 +34,20 @@ export function Navbar() {
           ))}
         </nav>
 
-        <Link
-          to="/dashboard"
+        <button
+          type="button"
+          onClick={() => setLoginOpen(true)}
           className="rounded-full border border-ember/50 px-5 py-2 text-sm font-semibold text-ember transition-colors hover:bg-ember hover:text-bg"
         >
           Iniciar sesión
-        </Link>
+        </button>
       </div>
+
+      <LoginModal
+        key={String(loginOpen)}
+        open={loginOpen}
+        onClose={() => setLoginOpen(false)}
+      />
     </header>
   )
 }
