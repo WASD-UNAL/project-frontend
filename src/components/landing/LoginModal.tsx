@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -17,19 +17,12 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
   const navigate = useNavigate();
   const emailId = useId();
   const passwordId = useId();
-  const emailRef = useRef<HTMLInputElement>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(() => emailRef.current?.focus(), 60);
-    return () => clearTimeout(t);
-  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -48,16 +41,19 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     setBusy(true);
     setError(null);
     try {
-      const { token } = await login({ email: email.trim(), password });
+      const { token } = await login({ identifier: email.trim(), password });
       setToken(token);
       onClose();
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "No pudimos iniciar sesión. Revisa tu conexión e inténtalo de nuevo.",
-      );
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        console.error("Fallo inesperado en el login:", err);
+        setError(
+          "No pudimos iniciar sesión. Revisa tu conexión e inténtalo de nuevo.",
+        );
+      }
       setBusy(false);
     }
   }
@@ -110,7 +106,8 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                   <Mail className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted transition-colors group-focus-within:text-ember" />
                   <input
                     id={emailId}
-                    ref={emailRef}
+                    // Foco inicial en el email al abrir el diálogo modal.
+                    autoFocus
                     type="email"
                     autoComplete="email"
                     required

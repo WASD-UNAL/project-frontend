@@ -16,9 +16,7 @@
   --color-muted: #9a9a9a;
   --color-line: #262626;
 
-  /* Semáforo de vigencia de membresía. Colores de ESTADO (no acentos
-     decorativos): el verde reusa el lima de marca (ember), el ámbar y el
-     rojo se reservan solo para el estado de pago que envía el backend. */
+
   --color-warn: #f5b301;
   --color-warn-soft: #f5b30119;
   --color-danger: #ef4444;
@@ -28,13 +26,11 @@
 @layer base {
   html {
     color-scheme: dark;
-    scroll-padding-top: 65px; /* alto del navbar sticky */
+    scroll-padding-top: 65px; 
     scroll-behavior: smooth;
   }
 
-  /* Enfoque por sección: solo en pantallas con espacio suficiente para
-     mostrar una sección completa de una vez. En viewports pequeños el
-     flujo normal evita que el contenido quede cortado. */
+
   @media (min-width: 768px) and (min-height: 820px) {
     html {
       scroll-snap-type: y proximity;
@@ -66,7 +62,7 @@
     @apply absolute size-2 rounded-full bg-bg/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1px_1px_rgba(0,0,0,0.6)];
   }
 
-  /* Entrada secuencial de las líneas del titular del Hero */
+
   @keyframes hero-line-in {
     0% {
       opacity: 0;
@@ -83,7 +79,7 @@
     animation: hero-line-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  /* Cursor del efecto typing */
+
   @keyframes caret-blink {
     0%, 45% { opacity: 1; }
     50%, 100% { opacity: 0; }
@@ -100,8 +96,6 @@
     }
   }
 
-  /* Entrada de las tarjetas del dashboard: aparecen desde abajo con un
-     pequeño escalonado vía --rise-delay. */
   @keyframes card-rise {
     0% {
       opacity: 0;

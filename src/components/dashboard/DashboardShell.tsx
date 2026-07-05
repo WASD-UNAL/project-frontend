@@ -69,8 +69,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
         if (!cancelled) setMemberName(`${profile.name} ${profile.lastname}`)
       })
       .catch(() => {
-        // Si falla (p.ej. sesión inválida), se conserva el estado de carga
-        // y el usuario ya verá el error principal al cargar /me/membership.
       })
     return () => {
       cancelled = true
@@ -81,7 +79,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <div className="min-h-[100dvh] bg-bg lg:grid lg:grid-cols-[280px_1fr]">
-      {/* Sidebar fija (desktop) */}
       <aside className="hidden border-r border-line bg-surface lg:flex lg:flex-col">
         <div className="flex items-center gap-2 border-b border-line px-6 py-5">
           <Dumbbell className="size-6 text-ember" strokeWidth={2} />
@@ -117,7 +114,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </div>
       </aside>
 
-      {/* Top bar (mobile) */}
       <header className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 lg:hidden">
         <div className="flex items-center gap-2">
           <Dumbbell className="size-5 text-ember" strokeWidth={2} />

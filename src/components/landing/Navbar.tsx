@@ -9,7 +9,6 @@ const links = [
 ]
 
 export function Navbar() {
-  // Estado de visibilidad del formulario de inicio de sesión.
   const [loginOpen, setLoginOpen] = useState(false)
 
   return (
