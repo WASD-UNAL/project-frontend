@@ -3,6 +3,9 @@ import type {
   AdminMetrics,
   AdminPayment,
   Gender,
+  IncomeStats,
+  MonthlyIncomePoint,
+  PlanIncome,
 } from '../types/admin'
 import type { PaymentStatus } from '../types/membership'
 
@@ -76,6 +79,27 @@ const attendance = [
   { label: 'Dom', count: 98 },
 ]
 
+const monthlyIncome: MonthlyIncomePoint[] = [
+  { label: 'Ene', amount: 8_450_000 },
+  { label: 'Feb', amount: 9_120_000 },
+  { label: 'Mar', amount: 10_300_000 },
+  { label: 'Abr', amount: 9_800_000 },
+  { label: 'May', amount: 11_200_000 },
+  { label: 'Jun', amount: 12_100_000 },
+  { label: 'Jul', amount: 12_900_000 },
+  { label: 'Ago', amount: 11_600_000 },
+  { label: 'Sep', amount: 12_400_000 },
+  { label: 'Oct', amount: 13_100_000 },
+  { label: 'Nov', amount: 13_800_000 },
+  { label: 'Dic', amount: 15_200_000 },
+]
+
+const incomeByPlan: PlanIncome[] = [
+  { planName: 'Básico', amount: 29_400_000 },
+  { planName: 'Plus', amount: 61_570_000 },
+  { planName: 'Elite', amount: 49_000_000 },
+]
+
 export function getAdminMetrics(): Promise<AdminMetrics> {
   const activeMemberships = members.filter(
     (m) => m.status === 'ACTIVE' || m.status === 'EXPIRING',
@@ -93,6 +117,17 @@ export function getAdminMetrics(): Promise<AdminMetrics> {
     pendingPayments,
     attendance,
     attendancePeak,
+  })
+}
+
+export function getIncomeStats(): Promise<IncomeStats> {
+  const totalYear = monthlyIncome.reduce((sum, m) => sum + m.amount, 0)
+  const monthlyPeak = Math.max(...monthlyIncome.map((m) => m.amount))
+  return delay({
+    monthly: monthlyIncome.map((m) => ({ ...m })),
+    byPlan: incomeByPlan.map((p) => ({ ...p })),
+    totalYear,
+    monthlyPeak,
   })
 }
 

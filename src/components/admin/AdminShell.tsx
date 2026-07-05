@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  BarChart3,
   CreditCard,
   Dumbbell,
   LayoutDashboard,
@@ -11,7 +12,7 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { getMyProfile } from '../../services/membershipService'
 
-export type AdminSection = 'overview' | 'members' | 'payments'
+export type AdminSection = 'overview' | 'statistics' | 'members' | 'payments'
 
 interface NavItem {
   key: AdminSection
@@ -21,6 +22,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { key: 'overview', label: 'Resumen', icon: LayoutDashboard },
+  { key: 'statistics', label: 'Estadística', icon: BarChart3 },
   { key: 'members', label: 'Socios', icon: Users },
   { key: 'payments', label: 'Pagos', icon: CreditCard },
 ]
