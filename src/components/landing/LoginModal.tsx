@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { login } from "../../services/authService";
+import { getMyProfile } from "../../services/membershipService";
 import { ApiError } from "../../services/apiClient";
 
 interface LoginModalProps {
@@ -50,8 +51,10 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     try {
       const { token } = await login({ email: email.trim(), password });
       setToken(token);
+      const profile = await getMyProfile();
+      const isAdmin = (profile.role ?? "").toUpperCase().includes("ADMIN");
       onClose();
-      navigate("/dashboard");
+      navigate(isAdmin ? "/admin" : "/dashboard");
     } catch (err) {
       setError(
         err instanceof ApiError
