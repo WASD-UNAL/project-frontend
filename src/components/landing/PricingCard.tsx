@@ -1,7 +1,9 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import type { AvailablePlan } from '../../types/membership'
 import { formatCOP } from '../../utils/currency'
 import { planPeriodLabel } from '../../utils/planPeriod'
+import { useAuth } from '../../hooks/useAuth'
+import { useAuthFlow } from '../../hooks/useAuthFlow'
 import { RivetPlate } from './RivetPlate'
 
 interface PricingCardProps {
@@ -10,6 +12,18 @@ interface PricingCardProps {
 }
 
 export function PricingCard({ plan, highlighted }: PricingCardProps) {
+  const { isAuthenticated } = useAuth()
+  const { openAuth } = useAuthFlow()
+  const navigate = useNavigate()
+
+  function handleChoose() {
+    if (isAuthenticated) {
+      navigate(`/dashboard?enroll=${plan.id}`)
+    } else {
+      openAuth('register', plan.id)
+    }
+  }
+
   return (
     <RivetPlate
       className={`flex h-full flex-col p-6 ${
@@ -41,8 +55,9 @@ export function PricingCard({ plan, highlighted }: PricingCardProps) {
         <span className="text-muted"> {planPeriodLabel(plan.durationDays)}</span>
       </p>
 
-      <Link
-        to="/dashboard"
+      <button
+        type="button"
+        onClick={handleChoose}
         className={`mt-6 rounded-full px-6 py-3 text-center text-sm font-bold tracking-wide transition-transform hover:scale-[1.02] ${
           highlighted
             ? 'bg-ember text-bg'
@@ -50,7 +65,7 @@ export function PricingCard({ plan, highlighted }: PricingCardProps) {
         }`}
       >
         Elegir {plan.name}
-      </Link>
+      </button>
     </RivetPlate>
   )
 }
