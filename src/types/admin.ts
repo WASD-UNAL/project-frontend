@@ -56,3 +56,20 @@ export interface AdminMetrics {
   attendance: StatPoint[]
   attendancePeak: number
 }
+
+export interface MonthlyIncomePoint {
+  label: string
+  amount: number
+}
+
+export interface PlanIncome {
+  planName: string
+  amount: number
+}
+
+export interface IncomeStats {
+  monthly: MonthlyIncomePoint[]
+  byPlan: PlanIncome[]
+  totalYear: number
+  monthlyPeak: number
+}
