@@ -39,3 +39,20 @@ export interface AdminPayment {
 export interface AdminPaymentView extends AdminPayment {
   memberName: string | null
 }
+
+export interface MonthlyIncomePoint {
+  label: string
+  amount: number
+}
+
+export interface PlanIncome {
+  planName: string
+  amount: number
+}
+
+export interface IncomeStats {
+  monthly: MonthlyIncomePoint[]
+  byPlan: PlanIncome[]
+  totalYear: number
+  monthlyPeak: number
+}

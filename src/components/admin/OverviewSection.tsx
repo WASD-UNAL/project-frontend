@@ -154,22 +154,23 @@ function AttendanceChart({
         <span className="font-mono text-xs text-muted">visitas por día</span>
       </div>
 
-      <div className="mt-8 flex h-56 items-end gap-2 border-b border-line sm:gap-3">
+      <div className="mt-8 flex h-56 gap-2 border-b border-line sm:gap-3">
         {points.map(({ label, count }) => {
           const height = peak > 0 ? Math.max((count / peak) * 100, 4) : 0
           return (
             <div
               key={label}
-              className="group flex flex-1 flex-col items-center justify-end gap-2"
+              className="group flex h-full flex-1 flex-col justify-end"
               title={`${label}: ${count} visitas`}
             >
-              <span className="font-mono text-xs text-muted transition-colors group-hover:text-ink">
-                {count}
-              </span>
               <div
-                className="w-full rounded-t bg-ember transition-opacity group-hover:opacity-80"
+                className="relative w-full rounded-t bg-ember transition-opacity group-hover:opacity-80"
                 style={{ height: `${height}%` }}
-              />
+              >
+                <span className="absolute inset-x-0 -top-5 text-center font-mono text-xs text-muted transition-colors group-hover:text-ink">
+                  {count}
+                </span>
+              </div>
             </div>
           )
         })}
