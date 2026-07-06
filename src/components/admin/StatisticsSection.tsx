@@ -5,6 +5,7 @@ import {
   Crown,
   TrendingDown,
   TrendingUp,
+  UserX,
   Wallet,
 } from 'lucide-react'
 import type {
@@ -12,7 +13,9 @@ import type {
   RevenueByPlan,
   RevenueComparison,
 } from '../../types/admin'
+import type { VisualAlertResponse } from '../../services/accessService'
 import {
+  getInactiveCustomers,
   getRevenueByPlan,
   getRevenueComparison,
   getYearRevenue,
@@ -53,6 +56,7 @@ interface ReportData {
   yearly: MonthlyRevenue[]
   byPlan: RevenueByPlan
   comparison: RevenueComparison
+  inactive: VisualAlertResponse[]
 }
 
 export function StatisticsSection() {
@@ -66,9 +70,10 @@ export function StatisticsSection() {
       getYearRevenue(now.getFullYear()),
       getRevenueByPlan(now.getFullYear(), now.getMonth() + 1),
       getRevenueComparison(),
+      getInactiveCustomers(),
     ])
-      .then(([yearly, byPlan, comparison]) => {
-        if (!cancelled) setData({ yearly, byPlan, comparison })
+      .then(([yearly, byPlan, comparison, inactive]) => {
+        if (!cancelled) setData({ yearly, byPlan, comparison, inactive })
       })
       .catch(() => {
         if (!cancelled) setError(true)
@@ -104,7 +109,7 @@ export function StatisticsSection() {
 }
 
 function StatisticsContent({ data }: { data: ReportData }) {
-  const { yearly, byPlan, comparison } = data
+  const { yearly, byPlan, comparison, inactive } = data
 
   const totalYear = yearly.reduce((sum, m) => sum + m.totalRevenue, 0)
   const monthlyPeak = Math.max(...yearly.map((m) => m.totalRevenue))
@@ -300,7 +305,61 @@ function StatisticsContent({ data }: { data: ReportData }) {
           </ul>
         )}
       </section>
+
+      <InactiveCustomersCard customers={inactive} />
     </>
+  )
+}
+
+function InactiveCustomersCard({
+  customers,
+}: {
+  customers: VisualAlertResponse[]
+}) {
+  return (
+    <section
+      aria-label="Clientes inactivos"
+      className="animate-card-rise mt-6 rounded-2xl border border-line bg-surface p-6"
+      style={{ '--rise-delay': '320ms' } as CSSProperties}
+    >
+      <div className="flex items-baseline justify-between">
+        <h2 className="flex items-center gap-2 font-display text-2xl tracking-wide text-ink">
+          <UserX className="size-5 text-danger" strokeWidth={1.75} />
+          Clientes inactivos
+        </h2>
+        <span className="font-mono text-xs text-muted">
+          {customers.length}{' '}
+          {customers.length === 1 ? 'cliente' : 'clientes'} sin membresía
+          vigente
+        </span>
+      </div>
+
+      {customers.length === 0 ? (
+        <p className="mt-6 text-sm text-muted">
+          Todos los socios tienen su membresía al día.
+        </p>
+      ) : (
+        <ul className="mt-4 divide-y divide-line">
+          {customers.map((c) => (
+            <li
+              key={c.document}
+              className="flex flex-wrap items-center justify-between gap-3 py-3.5"
+            >
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm text-ink">
+                  <span className="size-1.5 shrink-0 rounded-full bg-danger" aria-hidden />
+                  {c.userName ?? `Documento ${c.document}`}
+                </p>
+                <p className="mt-0.5 pl-3.5 font-mono text-xs text-muted">
+                  {c.document}
+                </p>
+              </div>
+              <p className="text-xs text-muted">{c.message}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 

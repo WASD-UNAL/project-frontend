@@ -1,5 +1,6 @@
 import { api } from './apiClient'
 import { register } from './authService'
+import type { VisualAlertResponse } from './accessService'
 import type { AttendanceStatsResponse } from '../types/attendance'
 import type {
   AdminClient,
@@ -135,4 +136,8 @@ export function getRevenueByPlan(
 
 export function getRevenueComparison(): Promise<RevenueComparison> {
   return api.get<RevenueComparison>('/admin/reports/revenue-comparison')
+}
+
+export function getInactiveCustomers(): Promise<VisualAlertResponse[]> {
+  return api.get<VisualAlertResponse[]>('/admin/stats/inactive-customers')
 }
