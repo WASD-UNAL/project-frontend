@@ -40,6 +40,23 @@ export interface AdminPaymentView extends AdminPayment {
   memberName: string | null
 }
 
+export interface AdminPlan {
+  id: number
+  name: string
+  description: string | null
+  durationDays: number
+  price: number
+  active: boolean
+}
+
+export interface PlanInput {
+  name: string
+  description: string | null
+  durationDays: number
+  price: number
+  active: boolean
+}
+
 export interface MonthlyIncomePoint {
   label: string
   amount: number
