@@ -6,9 +6,9 @@ import type {
   AdminPayment,
   AdminPaymentView,
   ClientUpdateInput,
-  IncomeStats,
-  MonthlyIncomePoint,
-  PlanIncome,
+  MonthlyRevenue,
+  RevenueByPlan,
+  RevenueComparison,
 } from '../types/admin'
 import type { PaymentMethod, PaymentStatus } from '../types/membership'
 
@@ -110,34 +110,29 @@ export function computeAdminCounters(members: AdminClient[], payments: AdminPaym
   }
 }
 
-const monthlyIncome: MonthlyIncomePoint[] = [
-  { label: 'Ene', amount: 8_450_000 },
-  { label: 'Feb', amount: 9_120_000 },
-  { label: 'Mar', amount: 10_300_000 },
-  { label: 'Abr', amount: 9_800_000 },
-  { label: 'May', amount: 11_200_000 },
-  { label: 'Jun', amount: 12_100_000 },
-  { label: 'Jul', amount: 12_900_000 },
-  { label: 'Ago', amount: 11_600_000 },
-  { label: 'Sep', amount: 12_400_000 },
-  { label: 'Oct', amount: 13_100_000 },
-  { label: 'Nov', amount: 13_800_000 },
-  { label: 'Dic', amount: 15_200_000 },
-]
+export function getMonthlyRevenue(
+  year: number,
+  month: number,
+): Promise<MonthlyRevenue> {
+  return api.get<MonthlyRevenue>(
+    `/admin/reports/monthly-revenue?year=${year}&month=${month}`,
+  )
+}
 
-const incomeByPlan: PlanIncome[] = [
-  { planName: 'Básico', amount: 29_400_000 },
-  { planName: 'Plus', amount: 61_570_000 },
-  { planName: 'Elite', amount: 49_000_000 },
-]
+export function getYearRevenue(year: number): Promise<MonthlyRevenue[]> {
+  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  return Promise.all(months.map((m) => getMonthlyRevenue(year, m)))
+}
 
-export function getIncomeStats(): Promise<IncomeStats> {
-  const totalYear = monthlyIncome.reduce((sum, m) => sum + m.amount, 0)
-  const monthlyPeak = Math.max(...monthlyIncome.map((m) => m.amount))
-  return Promise.resolve({
-    monthly: monthlyIncome.map((m) => ({ ...m })),
-    byPlan: incomeByPlan.map((p) => ({ ...p })),
-    totalYear,
-    monthlyPeak,
-  })
+export function getRevenueByPlan(
+  year: number,
+  month: number,
+): Promise<RevenueByPlan> {
+  return api.get<RevenueByPlan>(
+    `/admin/reports/revenue-by-plan?year=${year}&month=${month}`,
+  )
+}
+
+export function getRevenueComparison(): Promise<RevenueComparison> {
+  return api.get<RevenueComparison>('/admin/reports/revenue-comparison')
 }
