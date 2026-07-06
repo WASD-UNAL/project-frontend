@@ -20,7 +20,6 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  // Si al montar ya hay token, el perfil aún está por cargarse.
   const [profileLoaded, setProfileLoaded] = useState<boolean>(
     () => !localStorage.getItem(TOKEN_KEY),
   )
@@ -39,10 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => setToken(null), [setToken])
 
-  // Carga el perfil (incluye el rol) cuando hay token, para que el rol viva en
-  // un solo lugar en lugar de que cada pantalla llame a getMyProfile. El estado
-  // de carga se ajusta en setToken (fuera del efecto) para no disparar setState
-  // síncrono dentro del efecto.
   useEffect(() => {
     if (!token) return
     let cancelled = false

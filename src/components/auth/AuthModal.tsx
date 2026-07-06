@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, IdCard, Lock, Mail, User, UserRound, X } from 'lucide-react'
+import { Eye, EyeOff, IdCard, Lock, Mail, User, UserRound } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useAuthFlow } from '../../hooks/useAuthFlow'
 import { login, register, roleFromToken } from '../../services/authService'
 import { ApiError } from '../../services/apiClient'
+import { Modal } from '../common/Modal'
 
 const copy = {
   login: {
@@ -39,14 +39,6 @@ export function AuthModal() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !busy) closeAuth()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [busy, closeAuth])
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (busy) return
@@ -72,14 +64,11 @@ export function AuthModal() {
       setToken(result.token)
       closeAuth()
 
-      // La inscripción a un plan es una acción de cliente: va siempre al dashboard.
       if (pendingPlanId != null) {
         navigate(`/dashboard?enroll=${pendingPlanId}`)
         return
       }
 
-      // Los admins entran directo a su panel, sin pasar por la vista de cliente.
-      // El rol se lee del propio token (el registro siempre crea cuentas CLIENT).
       const isAdmin = mode === 'login' && roleFromToken(result.token) === 'ADMIN'
       navigate(isAdmin ? '/admin' : '/dashboard')
     } catch (err) {
@@ -97,35 +86,15 @@ export function AuthModal() {
 
   const t = copy[mode]
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[70] overflow-y-auto"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t.title}
+  return (
+    <Modal
+      open
+      onClose={closeAuth}
+      busy={busy}
+      maxWidth="max-w-md"
+      label={t.title}
     >
-      <button
-        type="button"
-        aria-label="Cerrar"
-        onClick={() => !busy && closeAuth()}
-        className="fixed inset-0 bg-bg/70 backdrop-blur-sm"
-      />
-
-      <div className="relative flex min-h-full items-center justify-center px-4 py-8">
-        <div className="animate-card-rise relative w-full max-w-md overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
-          <div className="h-1 w-full bg-ember" />
-
-          <button
-            type="button"
-            aria-label="Cerrar"
-            onClick={() => !busy && closeAuth()}
-            disabled={busy}
-            className="absolute top-5 right-5 text-muted transition-colors hover:text-ink disabled:opacity-40"
-          >
-            <X className="size-5" />
-          </button>
-
-          <div className="p-6 sm:p-8">
+      <div className="p-6 sm:p-8">
             <p className="font-mono text-xs tracking-[0.3em] text-ember uppercase">
               {t.eyebrow}
             </p>
@@ -259,10 +228,7 @@ export function AuthModal() {
               </button>
             </form>
           </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
+    </Modal>
   )
 }
 

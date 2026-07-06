@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AdminDataProvider } from '../contexts/AdminDataContext'
 import { AdminShell } from '../components/admin/AdminShell'
 import type { AdminSection } from '../components/admin/AdminShell'
 import { OverviewSection } from '../components/admin/OverviewSection'
@@ -10,11 +11,13 @@ export function AdminPage() {
   const [section, setSection] = useState<AdminSection>('overview')
 
   return (
-    <AdminShell active={section} onSelect={setSection}>
-      {section === 'overview' && <OverviewSection />}
-      {section === 'statistics' && <StatisticsSection />}
-      {section === 'members' && <MembersSection />}
-      {section === 'payments' && <PaymentsAdminSection />}
-    </AdminShell>
+    <AdminDataProvider>
+      <AdminShell active={section} onSelect={setSection}>
+        {section === 'overview' && <OverviewSection />}
+        {section === 'statistics' && <StatisticsSection />}
+        {section === 'members' && <MembersSection />}
+        {section === 'payments' && <PaymentsAdminSection />}
+      </AdminShell>
+    </AdminDataProvider>
   )
 }

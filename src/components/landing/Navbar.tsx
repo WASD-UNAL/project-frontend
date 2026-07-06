@@ -10,7 +10,7 @@ const links = [
 ]
 
 export function Navbar() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, role } = useAuth()
   const { openAuth } = useAuthFlow()
   const navigate = useNavigate()
 
@@ -39,7 +39,9 @@ export function Navbar() {
         <button
           type="button"
           onClick={() =>
-            isAuthenticated ? navigate('/dashboard') : openAuth('login')
+            isAuthenticated
+              ? navigate(role === 'ADMIN' ? '/admin' : '/dashboard')
+              : openAuth('login')
           }
           className="rounded-full border border-ember/50 px-5 py-2 text-sm font-semibold text-ember transition-colors hover:bg-ember hover:text-bg"
         >

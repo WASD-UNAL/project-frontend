@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Pencil } from 'lucide-react'
 import type { AdminClient } from '../../types/admin'
-import { formatDate } from '../../utils/membership'
+import { formatDate, memberStatusTheme } from '../../utils/membership'
 import { Modal } from '../common/Modal'
 
 interface MemberProfileModalProps {
@@ -25,7 +25,6 @@ function bmiFrom(weightKg: number, heightCm: number) {
   return { value: rounded, ...category }
 }
 
-// createdAt del backend es un OffsetDateTime (ISO con hora); tomamos solo la fecha.
 function toDateOnly(iso: string): string {
   return formatDate(iso.slice(0, 10))
 }
@@ -59,11 +58,11 @@ export function MemberProfileModal({
               </h2>
               <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium">
                 <span
-                  className={`size-1.5 rounded-full ${member.active ? 'bg-ember' : 'bg-muted'}`}
+                  className={`size-1.5 rounded-full ${memberStatusTheme(member.active).dot}`}
                   aria-hidden
                 />
-                <span className={member.active ? 'text-ember' : 'text-muted'}>
-                  {member.active ? 'Activo' : 'Inactivo'}
+                <span className={memberStatusTheme(member.active).text}>
+                  {memberStatusTheme(member.active).label}
                 </span>
                 {!member.active && (
                   <span className="text-muted"> · acceso suspendido</span>

@@ -3,7 +3,6 @@ import { register } from './authService'
 import type { AttendanceStatsResponse } from '../types/attendance'
 import type {
   AdminClient,
-  AdminMetrics,
   AdminPayment,
   AdminPaymentView,
   ClientUpdateInput,
@@ -12,10 +11,6 @@ import type {
   PlanIncome,
 } from '../types/admin'
 import type { PaymentMethod, PaymentStatus } from '../types/membership'
-
-// ---------------------------------------------------------------------------
-// Socios (clientes) — /admin/clients (protegido por ROLE_ADMIN)
-// ---------------------------------------------------------------------------
 
 export function getMembers(query?: string): Promise<AdminClient[]> {
   const q = query?.trim()
@@ -41,9 +36,6 @@ export function setMemberActive(
   return api.put<AdminClient>(`/admin/clients/${id}`, { active })
 }
 
-// No existe un endpoint "admin crea cliente": se reutiliza el registro público
-// (POST /auth/register), que crea una cuenta con rol CLIENT. El token que
-// devuelve corresponde al nuevo socio y se descarta (no toca la sesión admin).
 export interface NewMemberInput {
   name: string
   lastname: string
@@ -56,18 +48,14 @@ export async function createMember(input: NewMemberInput): Promise<void> {
   await register(input)
 }
 
-// ---------------------------------------------------------------------------
-// Pagos — /payments
-// ---------------------------------------------------------------------------
-
 export function getPayments(): Promise<AdminPayment[]> {
   return api.get<AdminPayment[]>('/payments')
 }
 
-// PaymentResponse no trae el nombre del socio; lo resolvemos cruzando userId
-// contra /admin/clients (asumiendo que userId === User.id === AdminClient.id).
-export async function getPaymentsWithMembers(): Promise<AdminPaymentView[]> {
-  const [payments, members] = await Promise.all([getPayments(), getMembers()])
+export function joinPaymentsWithMembers(
+  payments: AdminPayment[],
+  members: AdminClient[],
+): AdminPaymentView[] {
   const nameById = new Map(
     members.map((m) => [m.id, `${m.name} ${m.lastname}`] as const),
   )
@@ -77,8 +65,6 @@ export async function getPaymentsWithMembers(): Promise<AdminPaymentView[]> {
   }))
 }
 
-// UpdatePaymentRequest exige amount y method (@NotNull) además del status, así
-// que reenviamos los valores actuales del pago junto al nuevo estado.
 export function setPaymentStatus(
   payment: Pick<AdminPayment, 'id' | 'amount' | 'method' | 'reference'>,
   status: PaymentStatus,
@@ -97,10 +83,6 @@ export function setPaymentStatus(
   return api.put<AdminPayment>(`/payments/${payment.id}`, body)
 }
 
-// ---------------------------------------------------------------------------
-// Afluencia y métricas del resumen (calculadas en el cliente)
-// ---------------------------------------------------------------------------
-
 export function getAttendanceWeek(): Promise<AttendanceStatsResponse> {
   return api.get<AttendanceStatsResponse>('/stats/attendance?period=DAYS_WEEK')
 }
@@ -115,13 +97,7 @@ function isCurrentMonth(iso: string | null): boolean {
   )
 }
 
-export async function getAdminMetrics(): Promise<AdminMetrics> {
-  const [members, payments, attendance] = await Promise.all([
-    getMembers(),
-    getPayments(),
-    getAttendanceWeek(),
-  ])
-
+export function computeAdminCounters(members: AdminClient[], payments: AdminPayment[]) {
   const monthlyRevenue = payments
     .filter((p) => p.status === 'SUCCESSFUL' && isCurrentMonth(p.createdAt))
     .reduce((sum, p) => sum + p.amount, 0)
@@ -131,14 +107,8 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     activeMembers: members.filter((m) => m.active).length,
     monthlyRevenue,
     pendingPayments: payments.filter((p) => p.status === 'PENDING').length,
-    attendance: attendance.points,
-    attendancePeak: attendance.peakValue,
   }
 }
-
-// ---------------------------------------------------------------------------
-// Estadística de ingresos — datos de demostración (no hay endpoint en el backend)
-// ---------------------------------------------------------------------------
 
 const monthlyIncome: MonthlyIncomePoint[] = [
   { label: 'Ene', amount: 8_450_000 },

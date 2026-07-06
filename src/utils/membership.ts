@@ -75,3 +75,15 @@ export const paymentStatusThemes: Record<PaymentStatus, PaymentStatusTheme> = {
   PENDING: { label: 'Pendiente', text: 'text-warn', dot: 'bg-warn' },
   REJECTED: { label: 'Rechazado', text: 'text-danger', dot: 'bg-danger' },
 }
+
+interface MemberStatusTheme {
+  label: string
+  text: string
+  dot: string
+}
+
+export function memberStatusTheme(active: boolean): MemberStatusTheme {
+  return active
+    ? { label: 'Activo', text: 'text-ember', dot: 'bg-ember' }
+    : { label: 'Inactivo', text: 'text-muted', dot: 'bg-muted' }
+}
