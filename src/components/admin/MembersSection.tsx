@@ -1,39 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Eye, Search, Trash2, UserCheck, UserPlus, UserX } from 'lucide-react'
-import type { AdminMember, MemberStatus } from '../../types/admin'
-import type { NewMemberInput } from '../../services/adminService'
+import { Eye, Search, UserCheck, UserPlus, UserX } from 'lucide-react'
+import type { AdminClient } from '../../types/admin'
 import {
   createMember,
-  deleteMember,
   getMembers,
   setMemberActive,
   updateMember,
 } from '../../services/adminService'
-import { formatDate } from '../../utils/membership'
-import { ConfirmModal } from '../dashboard/ConfirmModal'
+import type { MemberFormValues } from './MemberFormModal'
 import { MemberFormModal } from './MemberFormModal'
 import { MemberProfileModal } from './MemberProfileModal'
 
-const statusThemes: Record<MemberStatus, { label: string; text: string; dot: string }> = {
-  ACTIVE: { label: 'Activo', text: 'text-ember', dot: 'bg-ember' },
-  EXPIRING: { label: 'Por vencer', text: 'text-warn', dot: 'bg-warn' },
-  EXPIRED: { label: 'Vencida', text: 'text-danger', dot: 'bg-danger' },
-  INACTIVE: { label: 'Inactivo', text: 'text-muted', dot: 'bg-muted' },
-}
-
 export function MembersSection() {
-  const [members, setMembers] = useState<AdminMember[] | null>(null)
+  const [members, setMembers] = useState<AdminClient[] | null>(null)
   const [error, setError] = useState(false)
   const [query, setQuery] = useState('')
   const [busyId, setBusyId] = useState<number | null>(null)
   const [newOpen, setNewOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
-  const [selected, setSelected] = useState<AdminMember | null>(null)
-  const [editing, setEditing] = useState<AdminMember | null>(null)
+  const [selected, setSelected] = useState<AdminClient | null>(null)
+  const [editing, setEditing] = useState<AdminClient | null>(null)
   const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState<AdminMember | null>(null)
-  const [removing, setRemoving] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -60,37 +48,51 @@ export function MembersSection() {
     )
   }, [members, query])
 
-  async function toggleActive(member: AdminMember) {
+  async function toggleActive(member: AdminClient) {
     setBusyId(member.id)
     try {
       const updated = await setMemberActive(member.id, !member.active)
       setMembers((prev) =>
-        prev
-          ? prev.map((m) => (m.id === updated.id ? updated : m))
-          : prev,
+        prev ? prev.map((m) => (m.id === updated.id ? updated : m)) : prev,
       )
     } finally {
       setBusyId(null)
     }
   }
 
-  async function handleCreate(input: NewMemberInput) {
+  async function handleCreate(input: MemberFormValues) {
     setCreating(true)
     try {
-      const created = await createMember(input)
-      setMembers((prev) => (prev ? [created, ...prev] : [created]))
+      await createMember({
+        name: input.name,
+        lastname: input.lastname,
+        email: input.email,
+        document: input.document,
+        password: input.password,
+      })
+      // El registro no devuelve el cliente creado; recargamos el listado real.
+      const fresh = await getMembers()
+      setMembers(fresh)
       setNewOpen(false)
-      setFeedback(`${created.name} ${created.lastname} quedó registrado.`)
+      setFeedback(`${input.name} ${input.lastname} quedó registrado.`)
     } finally {
       setCreating(false)
     }
   }
 
-  async function handleUpdate(input: NewMemberInput) {
+  async function handleUpdate(input: MemberFormValues) {
     if (!editing) return
     setSaving(true)
     try {
-      const updated = await updateMember(editing.id, input)
+      const updated = await updateMember(editing.id, {
+        name: input.name,
+        lastname: input.lastname,
+        email: input.email,
+        document: input.document,
+        phone: input.phone || null,
+        weight: input.weight,
+        height: input.height,
+      })
       setMembers((prev) =>
         prev ? prev.map((m) => (m.id === updated.id ? updated : m)) : prev,
       )
@@ -98,22 +100,6 @@ export function MembersSection() {
       setFeedback(`Se actualizó el perfil de ${updated.name} ${updated.lastname}.`)
     } finally {
       setSaving(false)
-    }
-  }
-
-  async function handleDelete() {
-    if (!deleting) return
-    const target = deleting
-    setRemoving(true)
-    try {
-      await deleteMember(target.id)
-      setMembers((prev) =>
-        prev ? prev.filter((m) => m.id !== target.id) : prev,
-      )
-      setDeleting(null)
-      setFeedback(`Se eliminó a ${target.name} ${target.lastname}.`)
-    } finally {
-      setRemoving(false)
     }
   }
 
@@ -125,7 +111,7 @@ export function MembersSection() {
             SOCIOS
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Consulta el estado de los socios y gestiona su acceso.
+            Consulta los datos de los socios y gestiona su acceso.
           </p>
         </div>
         <button
@@ -169,13 +155,12 @@ export function MembersSection() {
       ) : (
         <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-line font-mono text-[11px] tracking-[0.12em] text-muted uppercase">
                   <th className="px-5 py-3.5 font-medium">Socio</th>
                   <th className="px-5 py-3.5 font-medium">Documento</th>
-                  <th className="px-5 py-3.5 font-medium">Plan</th>
-                  <th className="px-5 py-3.5 font-medium">Vence</th>
+                  <th className="px-5 py-3.5 font-medium">Teléfono</th>
                   <th className="px-5 py-3.5 font-medium">Estado</th>
                   <th className="px-5 py-3.5 text-right font-medium">Acción</th>
                 </tr>
@@ -183,83 +168,70 @@ export function MembersSection() {
               <tbody className="divide-y divide-line">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-10 text-center text-muted">
+                    <td colSpan={5} className="px-5 py-10 text-center text-muted">
                       No hay socios que coincidan con “{query}”.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((m) => {
-                    const status = statusThemes[m.status]
-                    return (
-                      <tr key={m.id} className="transition-colors hover:bg-surface-soft/50">
-                        <td className="px-5 py-4">
-                          <p className="text-ink">
-                            {m.name} {m.lastname}
-                          </p>
-                          <p className="font-mono text-xs text-muted">{m.email}</p>
-                        </td>
-                        <td className="px-5 py-4 font-mono text-xs text-muted">
-                          {m.document}
-                        </td>
-                        <td className="px-5 py-4 text-muted">
-                          {m.planName ?? '—'}
-                        </td>
-                        <td className="px-5 py-4 font-mono text-xs text-muted">
-                          {m.endDate ? formatDate(m.endDate) : '—'}
-                        </td>
-                        <td className="px-5 py-4">
+                  filtered.map((m) => (
+                    <tr key={m.id} className="transition-colors hover:bg-surface-soft/50">
+                      <td className="px-5 py-4">
+                        <p className="text-ink">
+                          {m.name} {m.lastname}
+                        </p>
+                        <p className="font-mono text-xs text-muted">{m.email}</p>
+                      </td>
+                      <td className="px-5 py-4 font-mono text-xs text-muted">
+                        {m.document}
+                      </td>
+                      <td className="px-5 py-4 text-muted">{m.phone ?? '—'}</td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium ${m.active ? 'text-ember' : 'text-muted'}`}
+                        >
                           <span
-                            className={`inline-flex items-center gap-1.5 text-xs font-medium ${status.text}`}
+                            className={`size-1.5 rounded-full ${m.active ? 'bg-ember' : 'bg-muted'}`}
+                            aria-hidden
+                          />
+                          {m.active ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelected(m)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-steel hover:text-ink"
                           >
-                            <span className={`size-1.5 rounded-full ${status.dot}`} aria-hidden />
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelected(m)}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-steel hover:text-ink"
-                            >
-                              <Eye className="size-3.5" strokeWidth={2} />
-                              Ver
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => toggleActive(m)}
-                              disabled={busyId === m.id}
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
-                                m.active
-                                  ? 'border-line text-muted hover:border-danger hover:text-danger'
-                                  : 'border-ember/50 text-ember hover:bg-ember hover:text-bg'
-                              }`}
-                            >
-                              {m.active ? (
-                                <>
-                                  <UserX className="size-3.5" strokeWidth={2} />
-                                  Suspender
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="size-3.5" strokeWidth={2} />
-                                  Activar
-                                </>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleting(m)}
-                              aria-label={`Eliminar a ${m.name} ${m.lastname}`}
-                              className="inline-flex items-center justify-center rounded-full border border-line p-1.5 text-muted transition-colors hover:border-danger hover:text-danger"
-                            >
-                              <Trash2 className="size-3.5" strokeWidth={2} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
+                            <Eye className="size-3.5" strokeWidth={2} />
+                            Ver
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleActive(m)}
+                            disabled={busyId === m.id}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                              m.active
+                                ? 'border-line text-muted hover:border-danger hover:text-danger'
+                                : 'border-ember/50 text-ember hover:bg-ember hover:text-bg'
+                            }`}
+                          >
+                            {m.active ? (
+                              <>
+                                <UserX className="size-3.5" strokeWidth={2} />
+                                Suspender
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="size-3.5" strokeWidth={2} />
+                                Activar
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -294,23 +266,6 @@ export function MembersSection() {
         }}
         onClose={() => setSelected(null)}
       />
-
-      <ConfirmModal
-        open={deleting !== null}
-        title="¿Eliminar socio?"
-        confirmLabel="Sí, eliminar"
-        destructive
-        busy={removing}
-        onConfirm={handleDelete}
-        onClose={() => setDeleting(null)}
-      >
-        Vas a eliminar a{' '}
-        <span className="font-semibold text-ink">
-          {deleting ? `${deleting.name} ${deleting.lastname}` : ''}
-        </span>{' '}
-        de forma permanente. Se perderá su perfil y su historial asociado. Esta
-        acción no se puede deshacer.
-      </ConfirmModal>
     </div>
   )
 }

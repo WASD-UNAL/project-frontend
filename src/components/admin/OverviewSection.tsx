@@ -66,8 +66,8 @@ export function OverviewSection() {
             <KpiCard
               index={1}
               kpi={{
-                label: 'Membresías activas',
-                value: String(metrics.activeMemberships),
+                label: 'Socios activos',
+                value: String(metrics.activeMembers),
                 icon: BadgeCheck,
                 accent: true,
               }}

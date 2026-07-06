@@ -1,43 +1,56 @@
 import type { PaymentMethod, PaymentStatus } from './membership'
 import type { StatPoint } from './attendance'
 
-export type MemberStatus = 'ACTIVE' | 'EXPIRING' | 'EXPIRED' | 'INACTIVE'
-
-export type Gender = 'M' | 'F' | 'OTHER'
-
-export interface AdminMember {
+// Espejo 1:1 del ClientResponse del backend (dto/client/ClientResponse.kt).
+// No agregamos plan/vigencia/estado: el backend no los expone en este listado.
+export interface AdminClient {
   id: number
   name: string
   lastname: string
   email: string
   document: string
-  phone: string
-  birthDate: string | null
-  gender: Gender | null
-  address: string | null
-  weightKg: number | null
-  heightCm: number | null
-  planName: string | null
-  status: MemberStatus
-  endDate: string | null
+  phone: string | null
+  weight: number | null
+  height: number | null
   active: boolean
-  joinedAt: string
+  createdAt: string | null
 }
 
+// Espejo de ClientUpdateRequest (todos los campos opcionales).
+export interface ClientUpdateInput {
+  name?: string
+  lastname?: string
+  email?: string
+  document?: string
+  phone?: string | null
+  weight?: number | null
+  height?: number | null
+  active?: boolean
+}
+
+// Espejo de PaymentResponse (dto/payment/PaymentResponse.kt).
 export interface AdminPayment {
   id: number
-  memberName: string
-  memberDocument: string
+  membershipId: number
+  userId: number
+  discountId: number | null
   amount: number
   method: PaymentMethod
-  status: PaymentStatus
   reference: string | null
-  createdAt: string
+  status: PaymentStatus
+  createdAt: string | null
 }
 
+// El nombre del socio no viene en PaymentResponse: se resuelve cruzando userId
+// contra el listado de /admin/clients.
+export interface AdminPaymentView extends AdminPayment {
+  memberName: string | null
+}
+
+// Métricas calculadas en el frontend (no hay endpoint dedicado en el backend).
 export interface AdminMetrics {
   totalMembers: number
-  activeMemberships: number
+  activeMembers: number
   monthlyRevenue: number
   pendingPayments: number
   attendance: StatPoint[]

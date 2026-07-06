@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -9,7 +8,6 @@ import {
   Users,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { getMyProfile } from '../../services/membershipService'
 
 export type AdminSection = 'overview' | 'members' | 'payments'
 
@@ -66,20 +64,8 @@ function NavList({
 }
 
 export function AdminShell({ active, onSelect, children }: AdminShellProps) {
-  const { logout } = useAuth()
-  const [adminName, setAdminName] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    getMyProfile()
-      .then((profile) => {
-        if (!cancelled) setAdminName(`${profile.name} ${profile.lastname}`)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const { logout, profile } = useAuth()
+  const adminName = profile ? `${profile.name} ${profile.lastname}` : null
 
   const initial = adminName?.charAt(0) ?? 'A'
 

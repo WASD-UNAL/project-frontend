@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -9,7 +8,6 @@ import {
   User,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { getMyProfile } from '../../services/membershipService'
 
 interface NavItem {
   label: string
@@ -59,20 +57,8 @@ function NavList({ compact = false }: { compact?: boolean }) {
 }
 
 export function DashboardShell({ children }: DashboardShellProps) {
-  const { logout } = useAuth()
-  const [memberName, setMemberName] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    getMyProfile()
-      .then((profile) => {
-        if (!cancelled) setMemberName(`${profile.name} ${profile.lastname}`)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const { logout, profile } = useAuth()
+  const memberName = profile ? `${profile.name} ${profile.lastname}` : null
 
   const initial = memberName?.charAt(0) ?? '?'
 

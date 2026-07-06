@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, X } from 'lucide-react'
-import type { AdminPayment } from '../../types/admin'
+import type { AdminPaymentView } from '../../types/admin'
 import type { PaymentStatus } from '../../types/membership'
-import { getPayments, setPaymentStatus } from '../../services/adminService'
+import { getPaymentsWithMembers, setPaymentStatus } from '../../services/adminService'
 import { formatCOP } from '../../utils/currency'
 import { formatDate, paymentMethodLabel, paymentStatusThemes } from '../../utils/membership'
 
@@ -15,15 +15,19 @@ const filters: { key: Filter; label: string }[] = [
   { key: 'REJECTED', label: 'Rechazados' },
 ]
 
+function formatPaymentDate(iso: string | null): string {
+  return iso ? formatDate(iso.slice(0, 10)) : '—'
+}
+
 export function PaymentsAdminSection() {
-  const [payments, setPayments] = useState<AdminPayment[] | null>(null)
+  const [payments, setPayments] = useState<AdminPaymentView[] | null>(null)
   const [error, setError] = useState(false)
   const [filter, setFilter] = useState<Filter>('PENDING')
   const [busyId, setBusyId] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    getPayments()
+    getPaymentsWithMembers()
       .then((data) => {
         if (!cancelled) setPayments(data)
       })
@@ -50,12 +54,18 @@ export function PaymentsAdminSection() {
       : payments.filter((p) => p.status === filter)
   }, [payments, filter])
 
-  async function decide(id: number, status: PaymentStatus) {
-    setBusyId(id)
+  async function decide(payment: AdminPaymentView, status: PaymentStatus) {
+    setBusyId(payment.id)
     try {
-      const updated = await setPaymentStatus(id, status)
+      const updated = await setPaymentStatus(payment, status)
       setPayments((prev) =>
-        prev ? prev.map((p) => (p.id === updated.id ? updated : p)) : prev,
+        prev
+          ? prev.map((p) =>
+              p.id === updated.id
+                ? { ...updated, memberName: p.memberName }
+                : p,
+            )
+          : prev,
       )
     } finally {
       setBusyId(null)
@@ -114,9 +124,11 @@ export function PaymentsAdminSection() {
                 className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-5 py-4"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm text-ink">{p.memberName}</p>
+                  <p className="truncate text-sm text-ink">
+                    {p.memberName ?? `Socio #${p.userId}`}
+                  </p>
                   <p className="mt-0.5 font-mono text-xs text-muted">
-                    {formatDate(p.createdAt)} · {paymentMethodLabel(p.method)} ·{' '}
+                    {formatPaymentDate(p.createdAt)} · {paymentMethodLabel(p.method)} ·{' '}
                     {p.reference ?? `Pago #${p.id}`}
                   </p>
                 </div>
@@ -138,7 +150,7 @@ export function PaymentsAdminSection() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => decide(p.id, 'SUCCESSFUL')}
+                        onClick={() => decide(p, 'SUCCESSFUL')}
                         disabled={busyId === p.id}
                         className="inline-flex items-center gap-1.5 rounded-full border border-ember/50 px-3 py-1.5 text-xs font-semibold text-ember transition-colors hover:bg-ember hover:text-bg disabled:opacity-50"
                       >
@@ -147,7 +159,7 @@ export function PaymentsAdminSection() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => decide(p.id, 'REJECTED')}
+                        onClick={() => decide(p, 'REJECTED')}
                         disabled={busyId === p.id}
                         className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-danger hover:text-danger disabled:opacity-50"
                       >
