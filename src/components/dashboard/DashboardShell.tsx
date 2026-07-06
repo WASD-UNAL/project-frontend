@@ -9,54 +9,70 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
+export type DashboardSection = 'payments' | 'attendance'
+
 interface NavItem {
+  key?: DashboardSection
   label: string
   icon: typeof CreditCard
-  active?: boolean
   soon?: boolean
 }
 
 const navItems: NavItem[] = [
-  { label: 'Pagos', icon: CreditCard, active: true },
-  { label: 'Asistencias', icon: CalendarCheck, soon: true },
+  { key: 'payments', label: 'Pagos', icon: CreditCard },
+  { key: 'attendance', label: 'Asistencias', icon: CalendarCheck },
   { label: 'Perfil', icon: User, soon: true },
 ]
 
 interface DashboardShellProps {
+  active: DashboardSection
+  onSelect: (section: DashboardSection) => void
   children: ReactNode
 }
 
-function NavList({ compact = false }: { compact?: boolean }) {
+function NavList({
+  active,
+  onSelect,
+  compact = false,
+}: {
+  active: DashboardSection
+  onSelect: (section: DashboardSection) => void
+  compact?: boolean
+}) {
   return (
     <nav className={compact ? 'flex gap-1' : 'flex flex-col gap-1'}>
-      {navItems.map(({ label, icon: Icon, active, soon }) => (
-        <button
-          key={label}
-          type="button"
-          disabled={soon}
-          aria-current={active ? 'page' : undefined}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-            active
-              ? 'bg-surface-soft text-ink'
-              : soon
-                ? 'cursor-not-allowed text-muted/50'
-                : 'text-muted hover:text-ink'
-          } ${compact ? 'flex-1 justify-center' : ''}`}
-        >
-          <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-          {!compact && <span>{label}</span>}
-          {!compact && soon && (
-            <span className="ml-auto font-mono text-[10px] tracking-wide text-muted/60 uppercase">
-              Pronto
-            </span>
-          )}
-        </button>
-      ))}
+      {navItems.map(({ key, label, icon: Icon, soon }) => {
+        const isActive = !soon && key === active
+        return (
+          <button
+            key={label}
+            type="button"
+            disabled={soon}
+            onClick={() => key && onSelect(key)}
+            aria-current={isActive ? 'page' : undefined}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive
+                ? 'bg-surface-soft text-ink'
+                : soon
+                  ? 'cursor-not-allowed text-muted/50'
+                  : 'text-muted hover:text-ink'
+            } ${compact ? 'flex-1 justify-center' : ''}`}
+          >
+            <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+            {!compact && <span>{label}</span>}
+            {!compact && soon && (
+              <span className="ml-auto font-mono text-[10px] tracking-wide text-muted/60 uppercase">
+                Pronto
+              </span>
+            )}
+          </button>
+        )
+      })}
     </nav>
   )
 }
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({ active, onSelect, children }: DashboardShellProps) {
   const { logout, profile } = useAuth()
   const memberName = profile ? `${profile.name} ${profile.lastname}` : null
 
@@ -73,7 +89,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </div>
 
         <div className="flex-1 px-4 py-6">
-          <NavList />
+          <NavList active={active} onSelect={onSelect} />
         </div>
 
         <div className="border-t border-line px-4 py-4">
@@ -116,7 +132,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </Link>
       </header>
       <div className="border-b border-line bg-surface px-2 py-2 lg:hidden">
-        <NavList compact />
+        <NavList active={active} onSelect={onSelect} compact />
       </div>
 
       <main className="px-4 py-8 md:px-8 lg:px-12 lg:py-12">{children}</main>
