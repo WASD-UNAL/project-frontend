@@ -18,16 +18,7 @@ const entries: AttendanceEntry[] = [
 ]
 
 export function getMyAttendance(): Promise<MyAttendance> {
-  const now = new Date()
-  const month = now.getMonth()
-  const year = now.getFullYear()
-  const monthCount = entries.filter((e) => {
-    const [y, m] = e.date.split('-').map(Number)
-    return y === year && m - 1 === month
-  }).length
-
   return delay({
-    monthCount,
     currentStreak: 4,
     totalCount: entries.length,
     entries: entries.map((e) => ({ ...e })),

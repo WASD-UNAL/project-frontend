@@ -18,7 +18,6 @@ export interface AttendanceEntry {
 }
 
 export interface MyAttendance {
-  monthCount: number
   currentStreak: number
   totalCount: number
   entries: AttendanceEntry[]
