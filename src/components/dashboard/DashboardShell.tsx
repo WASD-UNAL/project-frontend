@@ -68,8 +68,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       .then((profile) => {
         if (!cancelled) setMemberName(`${profile.name} ${profile.lastname}`)
       })
-      .catch(() => {
-      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }

@@ -1,9 +1,35 @@
-import { Check } from 'lucide-react'
-import { plans } from '../../data/plans'
-import { formatCOP } from '../../utils/currency'
-import { RivetPlate } from './RivetPlate'
+import { useCallback, useEffect, useState } from 'react'
+import type { AvailablePlan } from '../../types/membership'
+import { getActivePlans } from '../../services/planService'
+import { ApiError } from '../../services/apiClient'
+import { PricingCarousel } from './PricingCarousel'
+
+function messageFor(error: unknown): string {
+  if (error instanceof ApiError) return error.message
+  return 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.'
+}
 
 export function Pricing() {
+  const [plans, setPlans] = useState<AvailablePlan[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      setPlans(await getActivePlans())
+    } catch (err) {
+      setError(messageFor(err))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
   return (
     <section
       id="planes"
@@ -24,55 +50,29 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {plans.map((plan) => (
-            <RivetPlate
-              key={plan.id}
-              className={`flex flex-col p-6 ${
-                plan.highlighted
-                  ? 'border-ember/60 shadow-[0_0_0_1px_var(--color-ember)_inset,0_20px_60px_-20px_var(--color-ember)]'
-                  : ''
-              }`}
-            >
-              {plan.highlighted && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-ember px-4 py-1 text-xs font-bold tracking-wide text-bg">
-                  MÁS POPULAR
-                </span>
-              )}
-
-              <h3 className="font-display text-3xl tracking-wide text-ink">
-                {plan.name.toUpperCase()}
-              </h3>
-              <p className="mt-1 text-sm text-muted">{plan.tagline}</p>
-
-              <p className="mt-5">
-                <span className="font-mono text-4xl font-semibold text-ink">
-                  {formatCOP(plan.priceCOP)}
-                </span>
-                <span className="text-muted"> / mes</span>
-              </p>
-
-              <ul className="mt-6 flex flex-1 flex-col gap-2.5">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm text-muted">
-                    <Check className="mt-0.5 size-4 shrink-0 text-ember" strokeWidth={2.5} />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <a
-                href="#"
-                className={`mt-6 rounded-full px-6 py-3 text-center text-sm font-bold tracking-wide transition-transform hover:scale-[1.02] ${
-                  plan.highlighted
-                    ? 'bg-ember text-bg'
-                    : 'border border-line text-ink hover:border-steel'
-                }`}
+        <div className="mt-8">
+          {loading ? (
+            <PricingSkeleton />
+          ) : error ? (
+            <div className="rounded-2xl border border-danger/40 bg-danger-soft p-6">
+              <p className="text-sm text-ink">{error}</p>
+              <button
+                type="button"
+                onClick={load}
+                className="mt-4 rounded-full border border-line px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-steel"
               >
-                Elegir {plan.name}
-              </a>
-            </RivetPlate>
-          ))}
+                Reintentar
+              </button>
+            </div>
+          ) : plans.length === 0 ? (
+            <div className="rounded-2xl border border-line bg-surface p-6">
+              <p className="text-sm text-muted">
+                No hay planes disponibles en este momento. Vuelve pronto.
+              </p>
+            </div>
+          ) : (
+            <PricingCarousel plans={plans} />
+          )}
         </div>
 
         <p className="mt-6 text-center text-sm text-muted">
@@ -81,5 +81,15 @@ export function Pricing() {
         </p>
       </div>
     </section>
+  )
+}
+
+function PricingSkeleton() {
+  return (
+    <div className="grid gap-6 md:grid-cols-3" aria-hidden>
+      <div className="h-80 animate-pulse rounded-2xl border border-line bg-surface" />
+      <div className="h-80 animate-pulse rounded-2xl border border-line bg-surface" />
+      <div className="hidden h-80 animate-pulse rounded-2xl border border-line bg-surface md:block" />
+    </div>
   )
 }
