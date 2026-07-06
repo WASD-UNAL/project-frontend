@@ -1,5 +1,6 @@
 import { api } from './apiClient'
 import type {
+  CheckoutResponse,
   MyMembership,
   PaymentHistoryItem,
   PaymentMethod,
@@ -31,4 +32,17 @@ export function enrollInPlan(
 
 export function cancelMembership(): Promise<MyMembership> {
   return api.patch<MyMembership>('/me/membership/cancel')
+}
+
+
+export function createCheckout(input: {
+  membershipId: number
+  userId: number
+  amount: number
+  method: PaymentMethod
+}): Promise<CheckoutResponse> {
+  return api.post<CheckoutResponse>('/payments/checkout', {
+    ...input,
+    status: 'PENDING',
+  })
 }

@@ -7,6 +7,7 @@ export type PaymentStatus = 'SUCCESSFUL' | 'PENDING' | 'REJECTED'
 
 export interface MyMembership {
   hasActiveMembership: boolean
+  membershipId: number | null
   planId: number | null
   planName: string | null
   price: number | null
@@ -23,7 +24,7 @@ export interface PaymentHistoryItem {
   method: PaymentMethod
   status: PaymentStatus
   reference: string | null
-  createdAt: string
+  createdAt: string | null
 }
 
 export interface AvailablePlan {
@@ -32,6 +33,11 @@ export interface AvailablePlan {
   description: string | null
   durationDays: number
   price: number
+}
+
+export interface CheckoutResponse {
+  paymentId: number
+  checkoutUrl: string
 }
 
 export interface UserProfile {

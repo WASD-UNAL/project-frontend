@@ -10,12 +10,14 @@ import type {
 } from '../../types/membership'
 import {
   cancelMembership,
+  createCheckout,
   enrollInPlan,
   getMyMembership,
   getPaymentHistory,
 } from '../../services/membershipService'
 import { getActivePlans } from '../../services/planService'
 import { ApiError } from '../../services/apiClient'
+import { useAuth } from '../../hooks/useAuth'
 import { MembershipStatusCard } from './MembershipStatusCard'
 import { PaymentHistoryList } from './PaymentHistoryList'
 import { EnrollPlanModal } from './EnrollPlanModal'
@@ -36,7 +38,23 @@ function messageFor(error: unknown): string {
   return 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.'
 }
 
+const returnMessages: Record<string, Feedback> = {
+  success: {
+    tone: 'ok',
+    text: 'Tu pago fue aprobado. Tu membresía se activará en cuanto la pasarela lo confirme.',
+  },
+  pending: {
+    tone: 'ok',
+    text: 'Tu pago quedó en proceso. Te confirmaremos cuando la pasarela lo apruebe.',
+  },
+  failure: {
+    tone: 'error',
+    text: 'El pago no se completó. Puedes intentarlo de nuevo cuando quieras.',
+  },
+}
+
 export function PaymentsSection() {
+  const { profile } = useAuth()
   const [membership, setMembership] = useState<MyMembership | null>(null)
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([])
   const [plans, setPlans] = useState<AvailablePlan[]>([])
@@ -51,7 +69,16 @@ export function PaymentsSection() {
   const [enrollOpen, setEnrollOpen] = useState(enrollParam !== null)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const paymentParam = searchParams.get('payment')
+  const [feedback, setFeedback] = useState<Feedback | null>(
+    paymentParam ? (returnMessages[paymentParam] ?? null) : null,
+  )
+
+  useEffect(() => {
+    if (paymentParam !== null) {
+      setSearchParams({}, { replace: true })
+    }
+  }, [paymentParam, setSearchParams])
 
   const closeEnroll = useCallback(() => {
     setEnrollOpen(false)
@@ -90,16 +117,40 @@ export function PaymentsSection() {
       const updated = await enrollInPlan(planId, method)
       setMembership(updated)
       setPayments(await getPaymentHistory())
-      closeEnroll()
-      setFeedback({
-        tone: 'ok',
-        text: 'Te inscribiste correctamente. Tu pago quedó pendiente de confirmación.',
+
+      if (method === 'CASH') {
+        closeEnroll()
+        setFeedback({
+          tone: 'ok',
+          text: 'Te inscribiste correctamente. Paga en recepción para confirmar tu membresía.',
+        })
+        return
+      }
+
+      const plan = plans.find((p) => p.id === planId)
+      if (updated.membershipId === null || plan === undefined || profile === null) {
+        closeEnroll()
+        setFeedback({
+          tone: 'error',
+          text: 'Tu inscripción quedó registrada, pero no pudimos generar el enlace de pago. Actualiza la página e inténtalo de nuevo.',
+        })
+        return
+      }
+
+      const checkout = await createCheckout({
+        membershipId: updated.membershipId,
+        userId: profile.id,
+        amount: plan.price,
+        method,
       })
+      window.location.assign(checkout.checkoutUrl)
     } catch (error) {
+      closeEnroll()
       setFeedback({ tone: 'error', text: messageFor(error) })
-    } finally {
       setBusy(false)
+      return
     }
+    setBusy(false)
   }
 
   async function handleCancel() {

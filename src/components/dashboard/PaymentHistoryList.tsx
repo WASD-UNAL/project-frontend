@@ -44,7 +44,8 @@ export function PaymentHistoryList({ payments }: PaymentHistoryListProps) {
                     {p.reference ?? `Pago #${p.id}`}
                   </p>
                   <p className="mt-0.5 font-mono text-xs text-muted">
-                    {formatDate(p.createdAt)} · {paymentMethodLabel(p.method)}
+                    {p.createdAt ? formatDate(p.createdAt) : 'Fecha pendiente'} ·{' '}
+                    {paymentMethodLabel(p.method)}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
