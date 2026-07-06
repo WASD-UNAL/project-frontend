@@ -7,6 +7,7 @@ import {
   Dumbbell,
   LayoutDashboard,
   LogOut,
+  ScanLine,
   Users,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -17,6 +18,7 @@ export type AdminSection =
   | 'members'
   | 'payments'
   | 'plans'
+  | 'access'
 
 interface NavItem {
   key: AdminSection
@@ -30,6 +32,7 @@ const navItems: NavItem[] = [
   { key: 'members', label: 'Socios', icon: Users },
   { key: 'payments', label: 'Pagos', icon: CreditCard },
   { key: 'plans', label: 'Planes', icon: ClipboardList },
+  { key: 'access', label: 'Acceso', icon: ScanLine },
 ]
 
 interface AdminShellProps {

@@ -7,6 +7,7 @@ import { StatisticsSection } from '../components/admin/StatisticsSection'
 import { MembersSection } from '../components/admin/MembersSection'
 import { PaymentsAdminSection } from '../components/admin/PaymentsAdminSection'
 import { PlansSection } from '../components/admin/PlansSection'
+import { AccessSection } from '../components/admin/AccessSection'
 
 export function AdminPage() {
   const [section, setSection] = useState<AdminSection>('overview')
@@ -19,6 +20,7 @@ export function AdminPage() {
         {section === 'members' && <MembersSection />}
         {section === 'payments' && <PaymentsAdminSection />}
         {section === 'plans' && <PlansSection />}
+        {section === 'access' && <AccessSection />}
       </AdminShell>
     </AdminDataProvider>
   )
