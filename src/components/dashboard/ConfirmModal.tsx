@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
+import { Modal } from '../common/Modal'
 
 interface ConfirmModalProps {
   open: boolean
@@ -24,38 +24,18 @@ export function ConfirmModal({
   onConfirm,
   onClose,
 }: ConfirmModalProps) {
-  const confirmRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    confirmRef.current?.focus()
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !busy) onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, busy, onClose])
-
-  if (!open) return null
-
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
+    <Modal
+      open={open}
+      onClose={onClose}
+      busy={busy}
+      maxWidth="max-w-md"
+      accent={false}
+      showClose={false}
+      label={title}
     >
-      <button
-        type="button"
-        aria-label="Cerrar"
-        onClick={() => !busy && onClose()}
-        className="absolute inset-0 bg-bg/70 backdrop-blur-sm"
-      />
-
-      <div className="relative w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
-        <h2 className="font-display text-3xl tracking-wide text-ink">
-          {title}
-        </h2>
+      <div className="p-6">
+        <h2 className="font-display text-3xl tracking-wide text-ink">{title}</h2>
         <div className="mt-3 text-sm leading-relaxed text-muted">{children}</div>
 
         <div className="mt-6 flex justify-end gap-3">
@@ -68,20 +48,18 @@ export function ConfirmModal({
             {cancelLabel}
           </button>
           <button
-            ref={confirmRef}
+            autoFocus
             type="button"
             onClick={onConfirm}
             disabled={busy}
             className={`rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 ${
-              destructive
-                ? 'bg-danger text-ink'
-                : 'bg-ember text-bg'
+              destructive ? 'bg-danger text-ink' : 'bg-ember text-bg'
             }`}
           >
             {busy ? 'Procesando…' : confirmLabel}
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

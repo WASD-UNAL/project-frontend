@@ -1,41 +1,28 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Eye, Search, UserCheck, UserPlus, UserX } from 'lucide-react'
 import type { AdminClient } from '../../types/admin'
-import {
-  createMember,
-  getMembers,
-  setMemberActive,
-  updateMember,
-} from '../../services/adminService'
+import { createMember, setMemberActive, updateMember } from '../../services/adminService'
+import { memberStatusTheme } from '../../utils/membership'
+import { useAdminData } from '../../hooks/useAdminData'
 import type { MemberFormValues } from './MemberFormModal'
 import { MemberFormModal } from './MemberFormModal'
 import { MemberProfileModal } from './MemberProfileModal'
 
+interface Feedback {
+  tone: 'ok' | 'error'
+  text: string
+}
+
 export function MembersSection() {
-  const [members, setMembers] = useState<AdminClient[] | null>(null)
-  const [error, setError] = useState(false)
+  const { members, membersError, refreshMembers } = useAdminData()
   const [query, setQuery] = useState('')
   const [busyId, setBusyId] = useState<number | null>(null)
   const [newOpen, setNewOpen] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [feedback, setFeedback] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [selected, setSelected] = useState<AdminClient | null>(null)
   const [editing, setEditing] = useState<AdminClient | null>(null)
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    getMembers()
-      .then((data) => {
-        if (!cancelled) setMembers(data)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const filtered = useMemo(() => {
     if (!members) return []
@@ -50,11 +37,15 @@ export function MembersSection() {
 
   async function toggleActive(member: AdminClient) {
     setBusyId(member.id)
+    setFeedback(null)
     try {
-      const updated = await setMemberActive(member.id, !member.active)
-      setMembers((prev) =>
-        prev ? prev.map((m) => (m.id === updated.id ? updated : m)) : prev,
-      )
+      await setMemberActive(member.id, !member.active)
+      await refreshMembers()
+    } catch {
+      setFeedback({
+        tone: 'error',
+        text: `No pudimos actualizar el estado de ${member.name} ${member.lastname}. Inténtalo de nuevo.`,
+      })
     } finally {
       setBusyId(null)
     }
@@ -70,11 +61,12 @@ export function MembersSection() {
         document: input.document,
         password: input.password,
       })
-      // El registro no devuelve el cliente creado; recargamos el listado real.
-      const fresh = await getMembers()
-      setMembers(fresh)
+      await refreshMembers()
       setNewOpen(false)
-      setFeedback(`${input.name} ${input.lastname} quedó registrado.`)
+      setFeedback({
+        tone: 'ok',
+        text: `${input.name} ${input.lastname} quedó registrado.`,
+      })
     } finally {
       setCreating(false)
     }
@@ -93,11 +85,12 @@ export function MembersSection() {
         weight: input.weight,
         height: input.height,
       })
-      setMembers((prev) =>
-        prev ? prev.map((m) => (m.id === updated.id ? updated : m)) : prev,
-      )
+      await refreshMembers()
       setEditing(null)
-      setFeedback(`Se actualizó el perfil de ${updated.name} ${updated.lastname}.`)
+      setFeedback({
+        tone: 'ok',
+        text: `Se actualizó el perfil de ${updated.name} ${updated.lastname}.`,
+      })
     } finally {
       setSaving(false)
     }
@@ -140,13 +133,17 @@ export function MembersSection() {
       {feedback && (
         <div
           role="status"
-          className="mt-4 rounded-xl border border-ember/40 bg-ember-soft px-4 py-3 text-sm text-ink"
+          className={`mt-4 rounded-xl border px-4 py-3 text-sm text-ink ${
+            feedback.tone === 'ok'
+              ? 'border-ember/40 bg-ember-soft'
+              : 'border-danger/40 bg-danger-soft'
+          }`}
         >
-          {feedback}
+          {feedback.text}
         </div>
       )}
 
-      {error ? (
+      {membersError ? (
         <p className="mt-6 rounded-2xl border border-danger/40 bg-danger-soft p-6 text-sm text-ink">
           No pudimos cargar los socios.
         </p>
@@ -186,15 +183,20 @@ export function MembersSection() {
                       </td>
                       <td className="px-5 py-4 text-muted">{m.phone ?? '—'}</td>
                       <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 text-xs font-medium ${m.active ? 'text-ember' : 'text-muted'}`}
-                        >
-                          <span
-                            className={`size-1.5 rounded-full ${m.active ? 'bg-ember' : 'bg-muted'}`}
-                            aria-hidden
-                          />
-                          {m.active ? 'Activo' : 'Inactivo'}
-                        </span>
+                        {(() => {
+                          const theme = memberStatusTheme(m.active)
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1.5 text-xs font-medium ${theme.text}`}
+                            >
+                              <span
+                                className={`size-1.5 rounded-full ${theme.dot}`}
+                                aria-hidden
+                              />
+                              {theme.label}
+                            </span>
+                          )
+                        })()}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-2">

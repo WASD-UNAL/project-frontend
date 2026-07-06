@@ -6,8 +6,6 @@ import { Modal } from '../common/Modal'
 
 type Mode = 'create' | 'edit'
 
-// Superset de valores del formulario. En "create" solo importan los campos de
-// registro (+ password); en "edit" los datos editables del cliente (+ métricas).
 export interface MemberFormValues {
   name: string
   lastname: string

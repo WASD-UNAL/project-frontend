@@ -6,9 +6,10 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react'
-import type { AdminMetrics } from '../../types/admin'
-import { getAdminMetrics } from '../../services/adminService'
+import type { StatPoint } from '../../types/attendance'
+import { computeAdminCounters, getAttendanceWeek } from '../../services/adminService'
 import { formatCOP } from '../../utils/currency'
+import { useAdminData } from '../../hooks/useAdminData'
 
 interface Kpi {
   label: string
@@ -17,23 +18,32 @@ interface Kpi {
   accent?: boolean
 }
 
+interface Attendance {
+  points: StatPoint[]
+  peak: number
+}
+
 export function OverviewSection() {
-  const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
-  const [error, setError] = useState(false)
+  const { members, membersError, payments, paymentsError } = useAdminData()
+  const [attendance, setAttendance] = useState<Attendance | null>(null)
+  const [attendanceError, setAttendanceError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    getAdminMetrics()
+    getAttendanceWeek()
       .then((data) => {
-        if (!cancelled) setMetrics(data)
+        if (!cancelled) setAttendance({ points: data.points, peak: data.peakValue })
       })
       .catch(() => {
-        if (!cancelled) setError(true)
+        if (!cancelled) setAttendanceError(true)
       })
     return () => {
       cancelled = true
     }
   }, [])
+
+  const error = membersError || paymentsError || attendanceError
+  const counters = members && payments ? computeAdminCounters(members, payments) : null
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -50,7 +60,7 @@ export function OverviewSection() {
         <p className="mt-6 rounded-2xl border border-danger/40 bg-danger-soft p-6 text-sm text-ink">
           No pudimos cargar las métricas.
         </p>
-      ) : !metrics ? (
+      ) : !counters || !attendance ? (
         <OverviewSkeleton />
       ) : (
         <>
@@ -59,7 +69,7 @@ export function OverviewSection() {
               index={0}
               kpi={{
                 label: 'Socios totales',
-                value: String(metrics.totalMembers),
+                value: String(counters.totalMembers),
                 icon: Users,
               }}
             />
@@ -67,7 +77,7 @@ export function OverviewSection() {
               index={1}
               kpi={{
                 label: 'Socios activos',
-                value: String(metrics.activeMembers),
+                value: String(counters.activeMembers),
                 icon: BadgeCheck,
                 accent: true,
               }}
@@ -76,7 +86,7 @@ export function OverviewSection() {
               index={2}
               kpi={{
                 label: 'Ingresos del mes',
-                value: formatCOP(metrics.monthlyRevenue),
+                value: formatCOP(counters.monthlyRevenue),
                 icon: TrendingUp,
               }}
             />
@@ -84,16 +94,13 @@ export function OverviewSection() {
               index={3}
               kpi={{
                 label: 'Pagos pendientes',
-                value: String(metrics.pendingPayments),
+                value: String(counters.pendingPayments),
                 icon: AlertCircle,
               }}
             />
           </div>
 
-          <AttendanceChart
-            points={metrics.attendance}
-            peak={metrics.attendancePeak}
-          />
+          <AttendanceChart points={attendance.points} peak={attendance.peak} />
         </>
       )}
     </div>
@@ -149,7 +156,7 @@ function AttendanceChart({
 
       <div className="mt-8 flex h-56 items-end gap-2 border-b border-line sm:gap-3">
         {points.map(({ label, count }) => {
-          const height = Math.max((count / peak) * 100, 4)
+          const height = peak > 0 ? Math.max((count / peak) * 100, 4) : 0
           return (
             <div
               key={label}

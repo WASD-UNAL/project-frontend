@@ -15,8 +15,6 @@ export function RequireRole({
     return <Navigate to="/" replace />
   }
 
-  // Esperamos a resolver el perfil antes de decidir, para no parpadear la
-  // pantalla ni redirigir a un admin legítimo mientras carga su rol.
   if (!profileLoaded) {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-bg">

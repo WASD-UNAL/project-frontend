@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Check, X } from 'lucide-react'
 import type { AdminPaymentView } from '../../types/admin'
 import type { PaymentStatus } from '../../types/membership'
-import { getPaymentsWithMembers, setPaymentStatus } from '../../services/adminService'
+import { joinPaymentsWithMembers, setPaymentStatus } from '../../services/adminService'
 import { formatCOP } from '../../utils/currency'
 import { formatDate, paymentMethodLabel, paymentStatusThemes } from '../../utils/membership'
+import { useAdminData } from '../../hooks/useAdminData'
 
 type Filter = 'ALL' | PaymentStatus
 
@@ -19,54 +20,51 @@ function formatPaymentDate(iso: string | null): string {
   return iso ? formatDate(iso.slice(0, 10)) : '—'
 }
 
+interface Feedback {
+  tone: 'ok' | 'error'
+  text: string
+}
+
 export function PaymentsAdminSection() {
-  const [payments, setPayments] = useState<AdminPaymentView[] | null>(null)
-  const [error, setError] = useState(false)
+  const { members, payments, paymentsError, refreshPayments } = useAdminData()
   const [filter, setFilter] = useState<Filter>('PENDING')
   const [busyId, setBusyId] = useState<number | null>(null)
+  const [feedback, setFeedback] = useState<Feedback | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    getPaymentsWithMembers()
-      .then((data) => {
-        if (!cancelled) setPayments(data)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const paymentsWithMembers = useMemo(() => {
+    if (!payments || !members) return null
+    return joinPaymentsWithMembers(payments, members)
+  }, [payments, members])
 
   const counts = useMemo(() => {
     const base = { ALL: 0, PENDING: 0, SUCCESSFUL: 0, REJECTED: 0 } as Record<Filter, number>
-    if (!payments) return base
-    base.ALL = payments.length
-    for (const p of payments) base[p.status] += 1
+    if (!paymentsWithMembers) return base
+    base.ALL = paymentsWithMembers.length
+    for (const p of paymentsWithMembers) base[p.status] += 1
     return base
-  }, [payments])
+  }, [paymentsWithMembers])
 
   const visible = useMemo(() => {
-    if (!payments) return []
+    if (!paymentsWithMembers) return []
     return filter === 'ALL'
-      ? payments
-      : payments.filter((p) => p.status === filter)
-  }, [payments, filter])
+      ? paymentsWithMembers
+      : paymentsWithMembers.filter((p) => p.status === filter)
+  }, [paymentsWithMembers, filter])
 
-  async function decide(payment: AdminPaymentView, status: PaymentStatus) {
+  async function decide(
+    payment: Pick<AdminPaymentView, 'id' | 'amount' | 'method' | 'reference'>,
+    status: PaymentStatus,
+  ) {
     setBusyId(payment.id)
+    setFeedback(null)
     try {
-      const updated = await setPaymentStatus(payment, status)
-      setPayments((prev) =>
-        prev
-          ? prev.map((p) =>
-              p.id === updated.id
-                ? { ...updated, memberName: p.memberName }
-                : p,
-            )
-          : prev,
-      )
+      await setPaymentStatus(payment, status)
+      await refreshPayments()
+    } catch {
+      setFeedback({
+        tone: 'error',
+        text: 'No pudimos actualizar el estado del pago. Inténtalo de nuevo.',
+      })
     } finally {
       setBusyId(null)
     }
@@ -82,6 +80,19 @@ export function PaymentsAdminSection() {
           Confirma o rechaza los pagos pendientes y revisa el historial.
         </p>
       </div>
+
+      {feedback && (
+        <div
+          role="status"
+          className={`mt-6 rounded-xl border px-4 py-3 text-sm text-ink ${
+            feedback.tone === 'ok'
+              ? 'border-ember/40 bg-ember-soft'
+              : 'border-danger/40 bg-danger-soft'
+          }`}
+        >
+          {feedback.text}
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-2">
         {filters.map(({ key, label }) => (
@@ -103,11 +114,11 @@ export function PaymentsAdminSection() {
         ))}
       </div>
 
-      {error ? (
+      {paymentsError ? (
         <p className="mt-6 rounded-2xl border border-danger/40 bg-danger-soft p-6 text-sm text-ink">
           No pudimos cargar los pagos.
         </p>
-      ) : !payments ? (
+      ) : !paymentsWithMembers ? (
         <div className="mt-6 h-80 animate-pulse rounded-2xl border border-line bg-surface" aria-hidden />
       ) : visible.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-line bg-surface p-10 text-center text-sm text-muted">
