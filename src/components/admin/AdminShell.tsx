@@ -1,32 +1,33 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  CalendarCheck,
+  BarChart3,
   CreditCard,
   Dumbbell,
+  LayoutDashboard,
   LogOut,
-  User,
+  Users,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
-export type DashboardSection = 'payments' | 'attendance'
+export type AdminSection = 'overview' | 'statistics' | 'members' | 'payments'
 
 interface NavItem {
-  key?: DashboardSection
+  key: AdminSection
   label: string
   icon: typeof CreditCard
-  soon?: boolean
 }
 
 const navItems: NavItem[] = [
+  { key: 'overview', label: 'Resumen', icon: LayoutDashboard },
+  { key: 'statistics', label: 'Estadística', icon: BarChart3 },
+  { key: 'members', label: 'Socios', icon: Users },
   { key: 'payments', label: 'Pagos', icon: CreditCard },
-  { key: 'attendance', label: 'Asistencias', icon: CalendarCheck },
-  { label: 'Perfil', icon: User, soon: true },
 ]
 
-interface DashboardShellProps {
-  active: DashboardSection
-  onSelect: (section: DashboardSection) => void
+interface AdminShellProps {
+  active: AdminSection
+  onSelect: (section: AdminSection) => void
   children: ReactNode
 }
 
@@ -35,36 +36,28 @@ function NavList({
   onSelect,
   compact = false,
 }: {
-  active: DashboardSection
-  onSelect: (section: DashboardSection) => void
+  active: AdminSection
+  onSelect: (section: AdminSection) => void
   compact?: boolean
 }) {
   return (
     <nav className={compact ? 'flex gap-1' : 'flex flex-col gap-1'}>
-      {navItems.map(({ key, label, icon: Icon, soon }) => {
-        const isActive = !soon && key === active
+      {navItems.map(({ key, label, icon: Icon }) => {
+        const isActive = key === active
         return (
           <button
-            key={label}
+            key={key}
             type="button"
-            disabled={soon}
-            onClick={() => key && onSelect(key)}
+            onClick={() => onSelect(key)}
             aria-current={isActive ? 'page' : undefined}
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
               isActive
                 ? 'bg-surface-soft text-ink'
-                : soon
-                  ? 'cursor-not-allowed text-muted/50'
-                  : 'text-muted hover:text-ink'
+                : 'text-muted hover:text-ink'
             } ${compact ? 'flex-1 justify-center' : ''}`}
           >
             <Icon className="size-4 shrink-0" strokeWidth={1.75} />
             {!compact && <span>{label}</span>}
-            {!compact && soon && (
-              <span className="ml-auto font-mono text-[10px] tracking-wide text-muted/60 uppercase">
-                Pronto
-              </span>
-            )}
           </button>
         )
       })}
@@ -72,11 +65,11 @@ function NavList({
   )
 }
 
-export function DashboardShell({ active, onSelect, children }: DashboardShellProps) {
+export function AdminShell({ active, onSelect, children }: AdminShellProps) {
   const { logout, profile } = useAuth()
-  const memberName = profile ? `${profile.name} ${profile.lastname}` : null
+  const adminName = profile ? `${profile.name} ${profile.lastname}` : null
 
-  const initial = memberName?.charAt(0) ?? '?'
+  const initial = adminName?.charAt(0) ?? 'A'
 
   return (
     <div className="min-h-[100dvh] bg-bg lg:grid lg:grid-cols-[280px_1fr]">
@@ -85,6 +78,9 @@ export function DashboardShell({ active, onSelect, children }: DashboardShellPro
           <Dumbbell className="size-6 text-ember" strokeWidth={2} />
           <span className="font-display text-2xl tracking-[0.2em] text-ink">
             Gymly
+          </span>
+          <span className="ml-1 rounded-full border border-ember/40 bg-ember-soft px-2 py-0.5 font-mono text-[10px] tracking-wide text-ember uppercase">
+            Admin
           </span>
         </div>
 
@@ -99,9 +95,9 @@ export function DashboardShell({ active, onSelect, children }: DashboardShellPro
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm text-ink">
-                {memberName ?? 'Cargando...'}
+                {adminName ?? 'Administrador'}
               </p>
-              <p className="text-xs text-muted">Socio</p>
+              <p className="text-xs text-muted">Administrador</p>
             </div>
           </div>
           <Link
@@ -120,6 +116,9 @@ export function DashboardShell({ active, onSelect, children }: DashboardShellPro
           <Dumbbell className="size-5 text-ember" strokeWidth={2} />
           <span className="font-display text-xl tracking-[0.2em] text-ink">
             Gymly
+          </span>
+          <span className="rounded-full border border-ember/40 bg-ember-soft px-2 py-0.5 font-mono text-[10px] tracking-wide text-ember uppercase">
+            Admin
           </span>
         </div>
         <Link

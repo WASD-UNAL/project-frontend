@@ -17,7 +17,6 @@ export function MembershipStatusCard({
   const theme = statusThemes[membership.statusColor]
   const active = membership.hasActiveMembership
 
-  // Porción de vigencia restante para la barra (solo si hay plan con fechas).
   let remainingPct = 0
   if (active && membership.initDate && membership.endDate) {
     const total = totalDaysBetween(membership.initDate, membership.endDate)
@@ -62,7 +61,6 @@ export function MembershipStatusCard({
             </span>
           </div>
 
-          {/* Barra de vigencia: se agota a medida que pasan los días. */}
           <div
             className="mt-5 h-2 w-full overflow-hidden rounded-full bg-bg/60"
             role="progressbar"

@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react'
 
-/**
- * Fondo global fijo con la pesa Gymly.
- * En el Hero se ve al 90% de opacidad; al hacer scroll pierde
- * opacidad y gana un zoom suave hasta casi desvanecerse.
- */
 export function ScrollBackground() {
   const layerRef = useRef<HTMLDivElement>(null)
 
@@ -46,7 +41,6 @@ export function ScrollBackground() {
           alt=""
           className="h-full w-full object-cover"
         />
-        {/* Scrim para que el texto del Hero contraste sobre la imagen */}
         <div className="absolute inset-0 bg-gradient-to-r from-bg/85 via-bg/45 to-bg/10" />
         <div className="absolute inset-0 bg-gradient-to-b from-bg/30 via-transparent to-bg/80" />
       </div>

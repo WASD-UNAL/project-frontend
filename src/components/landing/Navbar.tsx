@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { LoginModal } from './LoginModal'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
+import { useAuthFlow } from '../../hooks/useAuthFlow'
 
 const links = [
   { href: '#nosotros', label: 'Nosotros' },
@@ -9,8 +10,9 @@ const links = [
 ]
 
 export function Navbar() {
-  // Estado de visibilidad del formulario de inicio de sesión.
-  const [loginOpen, setLoginOpen] = useState(false)
+  const { isAuthenticated } = useAuth()
+  const { openAuth } = useAuthFlow()
+  const navigate = useNavigate()
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur">
@@ -36,18 +38,14 @@ export function Navbar() {
 
         <button
           type="button"
-          onClick={() => setLoginOpen(true)}
+          onClick={() =>
+            isAuthenticated ? navigate('/dashboard') : openAuth('login')
+          }
           className="rounded-full border border-ember/50 px-5 py-2 text-sm font-semibold text-ember transition-colors hover:bg-ember hover:text-bg"
         >
-          Iniciar sesión
+          {isAuthenticated ? 'Mi panel' : 'Iniciar sesión'}
         </button>
       </div>
-
-      <LoginModal
-        key={String(loginOpen)}
-        open={loginOpen}
-        onClose={() => setLoginOpen(false)}
-      />
     </header>
   )
 }

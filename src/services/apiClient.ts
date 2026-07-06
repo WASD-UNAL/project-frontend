@@ -1,13 +1,9 @@
-// Cliente HTTP tipado para el backend de Gymly. Centraliza la base URL, el
-// header Authorization (JWT desde localStorage) y el manejo de errores, para no
-// repetir `fetch(...).then(r => { if (!r.ok) throw... })` en cada servicio.
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api'
 
-/** Clave de localStorage donde vive el access token. */
+
 export const TOKEN_KEY = 'gymly_token'
 
-/** Error con el código/estado que devuelve el backend (`{ error, message }`). */
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
@@ -31,12 +27,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     let code = 'error'
     let message = res.statusText || 'Error de red'
-    try {
-      const body = await res.json()
+    const body = await res.json().catch(() => null)
+    if (body) {
       code = body.error ?? code
       message = body.message ?? message
-    } catch {
-      // respuesta sin cuerpo JSON; se conserva el statusText
     }
     throw new ApiError(res.status, code, message)
   }
@@ -50,6 +44,11 @@ export const api = {
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: 'POST',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: 'PUT',
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
   patch: <T>(path: string, body?: unknown) =>

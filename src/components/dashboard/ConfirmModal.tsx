@@ -7,9 +7,7 @@ interface ConfirmModalProps {
   children: ReactNode
   confirmLabel: string
   cancelLabel?: string
-  /** true pinta el botón de confirmar como acción destructiva. */
   destructive?: boolean
-  /** deshabilita los botones mientras corre la acción. */
   busy?: boolean
   onConfirm: () => void
   onClose: () => void

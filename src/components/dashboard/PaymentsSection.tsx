@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { RefreshCw } from 'lucide-react'
 import type {
   AvailablePlan,
@@ -43,10 +44,21 @@ export function PaymentsSection() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const [enrollOpen, setEnrollOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const enrollParam = searchParams.get('enroll')
+  const initialPlanId = enrollParam ? Number(enrollParam) : null
+
+  const [enrollOpen, setEnrollOpen] = useState(enrollParam !== null)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
+
+  const closeEnroll = useCallback(() => {
+    setEnrollOpen(false)
+    if (enrollParam !== null) {
+      setSearchParams({}, { replace: true })
+    }
+  }, [enrollParam, setSearchParams])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -78,7 +90,7 @@ export function PaymentsSection() {
       const updated = await enrollInPlan(planId, method)
       setMembership(updated)
       setPayments(await getPaymentHistory())
-      setEnrollOpen(false)
+      closeEnroll()
       setFeedback({
         tone: 'ok',
         text: 'Te inscribiste correctamente. Tu pago quedó pendiente de confirmación.',
@@ -180,9 +192,10 @@ export function PaymentsSection() {
       <EnrollPlanModal
         open={enrollOpen}
         plans={plans}
+        initialPlanId={initialPlanId}
         busy={busy}
         onEnroll={handleEnroll}
-        onClose={() => setEnrollOpen(false)}
+        onClose={closeEnroll}
       />
 
       <ConfirmModal

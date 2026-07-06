@@ -11,8 +11,6 @@ const description =
   'experto y una comunidad que te impulsa. Ya sea que busques fuerza, ' +
   'resistencia o equilibrio, en Gymly te apoyamos en cada paso.'
 
-// La segunda línea del título (delay 1.2s + duración 1.1s) termina ~2.3s
-// después de cargar; ahí arranca el typing de la descripción.
 const TYPING_START_MS = 2400
 const TYPING_SPEED_MS = 14
 

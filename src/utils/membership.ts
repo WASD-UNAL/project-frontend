@@ -10,13 +10,11 @@ const dateFmt = new Intl.DateTimeFormat('es-CO', {
   year: 'numeric',
 })
 
-/** "2026-07-18" -> "18 jul 2026" */
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   return dateFmt.format(new Date(y, m - 1, d))
 }
 
-/** Días totales de vigencia entre init y end (para la barra de progreso). */
 export function totalDaysBetween(initIso: string, endIso: string): number {
   const start = new Date(initIso).getTime()
   const end = new Date(endIso).getTime()
@@ -25,15 +23,10 @@ export function totalDaysBetween(initIso: string, endIso: string): number {
 }
 
 interface StatusTheme {
-  /** clase de color de texto */
   text: string
-  /** clase de borde */
   border: string
-  /** clase de fondo tenue */
   bgSoft: string
-  /** clase de relleno de la barra */
   fill: string
-  /** etiqueta corta del estado */
   label: string
 }
 

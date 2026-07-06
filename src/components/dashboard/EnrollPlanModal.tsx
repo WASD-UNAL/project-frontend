@@ -7,6 +7,7 @@ import { paymentMethodLabel } from '../../utils/membership'
 interface EnrollPlanModalProps {
   open: boolean
   plans: AvailablePlan[]
+  initialPlanId?: number | null
   busy?: boolean
   onEnroll: (planId: number, method: PaymentMethod) => void
   onClose: () => void
@@ -17,6 +18,7 @@ const methods: PaymentMethod[] = ['CARD', 'TRANSFER', 'CASH']
 export function EnrollPlanModal({
   open,
   plans,
+  initialPlanId = null,
   busy = false,
   onEnroll,
   onClose,
@@ -26,10 +28,14 @@ export function EnrollPlanModal({
 
   useEffect(() => {
     if (open) {
-      setPlanId(plans[1]?.id ?? plans[0]?.id ?? null)
+      const preferred =
+        initialPlanId != null && plans.some((p) => p.id === initialPlanId)
+          ? initialPlanId
+          : (plans[1]?.id ?? plans[0]?.id ?? null)
+      setPlanId(preferred)
       setMethod('CARD')
     }
-  }, [open, plans])
+  }, [open, plans, initialPlanId])
 
   useEffect(() => {
     if (!open) return
