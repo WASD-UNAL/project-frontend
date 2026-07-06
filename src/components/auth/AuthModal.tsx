@@ -6,7 +6,7 @@ import { Eye, EyeOff, IdCard, Lock, Mail, User, UserRound, X } from 'lucide-reac
 import type { LucideIcon } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useAuthFlow } from '../../hooks/useAuthFlow'
-import { login, register } from '../../services/authService'
+import { login, register, roleFromToken } from '../../services/authService'
 import { ApiError } from '../../services/apiClient'
 
 const copy = {
@@ -71,9 +71,17 @@ export function AuthModal() {
             })
       setToken(result.token)
       closeAuth()
-      navigate(
-        pendingPlanId != null ? `/dashboard?enroll=${pendingPlanId}` : '/dashboard',
-      )
+
+      // La inscripción a un plan es una acción de cliente: va siempre al dashboard.
+      if (pendingPlanId != null) {
+        navigate(`/dashboard?enroll=${pendingPlanId}`)
+        return
+      }
+
+      // Los admins entran directo a su panel, sin pasar por la vista de cliente.
+      // El rol se lee del propio token (el registro siempre crea cuentas CLIENT).
+      const isAdmin = mode === 'login' && roleFromToken(result.token) === 'ADMIN'
+      navigate(isAdmin ? '/admin' : '/dashboard')
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)

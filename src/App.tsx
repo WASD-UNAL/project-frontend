@@ -3,8 +3,10 @@ import { AuthProvider } from './contexts/AuthContext'
 import { AuthFlowProvider } from './contexts/AuthFlowContext'
 import { AuthModalHost } from './components/auth/AuthModalHost'
 import { RequireAuth } from './components/auth/RequireAuth'
+import { RequireRole } from './components/auth/RequireRole'
 import { LandingPage } from './pages/LandingPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { AdminPage } from './pages/AdminPage'
 
 function App() {
   return (
@@ -19,6 +21,14 @@ function App() {
                 <RequireAuth>
                   <DashboardPage />
                 </RequireAuth>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <RequireRole role="ADMIN">
+                  <AdminPage />
+                </RequireRole>
               }
             />
           </Routes>

@@ -1,66 +1,73 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  CalendarCheck,
   CreditCard,
   Dumbbell,
+  LayoutDashboard,
   LogOut,
-  User,
+  Users,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
+export type AdminSection = 'overview' | 'members' | 'payments'
+
 interface NavItem {
+  key: AdminSection
   label: string
   icon: typeof CreditCard
-  active?: boolean
-  soon?: boolean
 }
 
 const navItems: NavItem[] = [
-  { label: 'Pagos', icon: CreditCard, active: true },
-  { label: 'Asistencias', icon: CalendarCheck, soon: true },
-  { label: 'Perfil', icon: User, soon: true },
+  { key: 'overview', label: 'Resumen', icon: LayoutDashboard },
+  { key: 'members', label: 'Socios', icon: Users },
+  { key: 'payments', label: 'Pagos', icon: CreditCard },
 ]
 
-interface DashboardShellProps {
+interface AdminShellProps {
+  active: AdminSection
+  onSelect: (section: AdminSection) => void
   children: ReactNode
 }
 
-function NavList({ compact = false }: { compact?: boolean }) {
+function NavList({
+  active,
+  onSelect,
+  compact = false,
+}: {
+  active: AdminSection
+  onSelect: (section: AdminSection) => void
+  compact?: boolean
+}) {
   return (
     <nav className={compact ? 'flex gap-1' : 'flex flex-col gap-1'}>
-      {navItems.map(({ label, icon: Icon, active, soon }) => (
-        <button
-          key={label}
-          type="button"
-          disabled={soon}
-          aria-current={active ? 'page' : undefined}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-            active
-              ? 'bg-surface-soft text-ink'
-              : soon
-                ? 'cursor-not-allowed text-muted/50'
+      {navItems.map(({ key, label, icon: Icon }) => {
+        const isActive = key === active
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onSelect(key)}
+            aria-current={isActive ? 'page' : undefined}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive
+                ? 'bg-surface-soft text-ink'
                 : 'text-muted hover:text-ink'
-          } ${compact ? 'flex-1 justify-center' : ''}`}
-        >
-          <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-          {!compact && <span>{label}</span>}
-          {!compact && soon && (
-            <span className="ml-auto font-mono text-[10px] tracking-wide text-muted/60 uppercase">
-              Pronto
-            </span>
-          )}
-        </button>
-      ))}
+            } ${compact ? 'flex-1 justify-center' : ''}`}
+          >
+            <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+            {!compact && <span>{label}</span>}
+          </button>
+        )
+      })}
     </nav>
   )
 }
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function AdminShell({ active, onSelect, children }: AdminShellProps) {
   const { logout, profile } = useAuth()
-  const memberName = profile ? `${profile.name} ${profile.lastname}` : null
+  const adminName = profile ? `${profile.name} ${profile.lastname}` : null
 
-  const initial = memberName?.charAt(0) ?? '?'
+  const initial = adminName?.charAt(0) ?? 'A'
 
   return (
     <div className="min-h-[100dvh] bg-bg lg:grid lg:grid-cols-[280px_1fr]">
@@ -70,10 +77,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <span className="font-display text-2xl tracking-[0.2em] text-ink">
             Gymly
           </span>
+          <span className="ml-1 rounded-full border border-ember/40 bg-ember-soft px-2 py-0.5 font-mono text-[10px] tracking-wide text-ember uppercase">
+            Admin
+          </span>
         </div>
 
         <div className="flex-1 px-4 py-6">
-          <NavList />
+          <NavList active={active} onSelect={onSelect} />
         </div>
 
         <div className="border-t border-line px-4 py-4">
@@ -83,9 +93,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm text-ink">
-                {memberName ?? 'Cargando...'}
+                {adminName ?? 'Administrador'}
               </p>
-              <p className="text-xs text-muted">Socio</p>
+              <p className="text-xs text-muted">Administrador</p>
             </div>
           </div>
           <Link
@@ -105,6 +115,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <span className="font-display text-xl tracking-[0.2em] text-ink">
             Gymly
           </span>
+          <span className="rounded-full border border-ember/40 bg-ember-soft px-2 py-0.5 font-mono text-[10px] tracking-wide text-ember uppercase">
+            Admin
+          </span>
         </div>
         <Link
           to="/"
@@ -116,7 +129,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </Link>
       </header>
       <div className="border-b border-line bg-surface px-2 py-2 lg:hidden">
-        <NavList compact />
+        <NavList active={active} onSelect={onSelect} compact />
       </div>
 
       <main className="px-4 py-8 md:px-8 lg:px-12 lg:py-12">{children}</main>
