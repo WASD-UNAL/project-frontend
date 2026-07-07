@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import type { AvailablePlan } from '../../types/membership'
 import { formatCOP } from '../../utils/currency'
+import { effectivePrice } from '../../utils/discount'
 import { planPeriodLabel } from '../../utils/planPeriod'
 import { useAuth } from '../../hooks/useAuth'
 import { useAuthFlow } from '../../hooks/useAuthFlow'
+import { PromoSticker } from '../common/PromoSticker'
 import { RivetPlate } from './RivetPlate'
 
 interface PricingCardProps {
@@ -38,6 +40,14 @@ export function PricingCard({ plan, highlighted }: PricingCardProps) {
         </span>
       )}
 
+      {plan.discount && (
+        <PromoSticker
+          name={plan.discount.name}
+          percentage={plan.discount.percentage}
+          className="mb-3 -rotate-2 self-start"
+        />
+      )}
+
       <h3 className="font-display text-3xl tracking-wide text-ink">
         {plan.name.toUpperCase()}
       </h3>
@@ -49,8 +59,15 @@ export function PricingCard({ plan, highlighted }: PricingCardProps) {
       )}
 
       <p className="mt-6">
+        {plan.discount && (
+          <s className="block font-mono text-lg text-muted decoration-warn/70 decoration-2">
+            <span className="sr-only">Antes </span>
+            {formatCOP(plan.price)}
+          </s>
+        )}
         <span className="font-mono text-4xl font-semibold text-ink">
-          {formatCOP(plan.price)}
+          {plan.discount && <span className="sr-only">Ahora </span>}
+          {formatCOP(effectivePrice(plan))}
         </span>
         <span className="text-muted"> {planPeriodLabel(plan.durationDays)}</span>
       </p>

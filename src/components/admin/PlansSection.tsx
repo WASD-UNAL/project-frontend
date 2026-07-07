@@ -10,6 +10,8 @@ import {
 import { formatCOP } from '../../utils/currency'
 import { planPeriodLabel } from '../../utils/planPeriod'
 import { ConfirmModal } from '../dashboard/ConfirmModal'
+import { PromoSticker } from '../common/PromoSticker'
+import { DiscountsSection } from './DiscountsSection'
 import { PlanFormModal } from './PlanFormModal'
 
 interface Feedback {
@@ -161,8 +163,28 @@ export function PlansSection() {
                           {planPeriodLabel(plan.durationDays)}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-mono text-ink">
-                        {formatCOP(plan.price)}
+                      <td className="px-5 py-4">
+                        {plan.discount ? (
+                          <div>
+                            <s className="block font-mono text-xs text-muted decoration-warn/70">
+                              {formatCOP(plan.price)}
+                            </s>
+                            <span className="font-mono text-ink">
+                              {formatCOP(plan.discount.discountedPrice)}
+                            </span>
+                            <div className="mt-1.5">
+                              <PromoSticker
+                                name={plan.discount.name}
+                                percentage={plan.discount.percentage}
+                                size="sm"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="font-mono text-ink">
+                            {formatCOP(plan.price)}
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-2">
@@ -192,6 +214,8 @@ export function PlansSection() {
           </div>
         </div>
       )}
+
+      <DiscountsSection plans={plans ?? []} onPlansRefresh={refresh} />
 
       <PlanFormModal
         key={`create-${newOpen}`}

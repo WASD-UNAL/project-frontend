@@ -1,4 +1,4 @@
-import type { PaymentMethod, PaymentStatus } from './membership'
+import type { PaymentMethod, PaymentStatus, PlanDiscount } from './membership'
 
 export interface AdminClient {
   id: number
@@ -47,6 +47,7 @@ export interface AdminPlan {
   durationDays: number
   price: number
   active: boolean
+  discount?: PlanDiscount | null
 }
 
 export interface PlanInput {
@@ -55,6 +56,32 @@ export interface PlanInput {
   durationDays: number
   price: number
   active: boolean
+}
+
+export interface DiscountPlanRef {
+  id: number
+  name: string
+}
+
+export interface AdminDiscount {
+  id: number
+  name: string
+  description: string | null
+  percentage: number
+  initDate: string
+  endDate: string
+  active: boolean
+  plans: DiscountPlanRef[]
+}
+
+export interface DiscountInput {
+  name: string
+  description: string | null
+  percentage: number
+  initDate: string
+  endDate: string
+  active: boolean
+  planIds: number[]
 }
 
 export interface MonthlyRevenue {
