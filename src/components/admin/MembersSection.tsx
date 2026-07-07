@@ -4,6 +4,7 @@ import type { AdminClient } from '../../types/admin'
 import { createMember, setMemberActive, updateMember } from '../../services/adminService'
 import { memberStatusTheme } from '../../utils/membership'
 import { useAdminData } from '../../hooks/useAdminData'
+import { RefreshButton } from '../common/RefreshButton'
 import type { MemberFormValues } from './MemberFormModal'
 import { MemberFormModal } from './MemberFormModal'
 import { MemberProfileModal } from './MemberProfileModal'
@@ -107,14 +108,17 @@ export function MembersSection() {
             Consulta los datos de los socios y gestiona su acceso.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setNewOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-ember px-5 py-2.5 text-sm font-bold tracking-wide text-bg transition-transform hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <UserPlus className="size-4" strokeWidth={2} />
-          Registrar cliente
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <RefreshButton onRefresh={refreshMembers} />
+          <button
+            type="button"
+            onClick={() => setNewOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-ember px-5 py-2.5 text-sm font-bold tracking-wide text-bg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <UserPlus className="size-4" strokeWidth={2} />
+            Registrar cliente
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
