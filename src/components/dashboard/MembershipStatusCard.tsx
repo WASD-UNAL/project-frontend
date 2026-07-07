@@ -133,6 +133,15 @@ export function MembershipStatusCard({
             {membership.price !== null ? ` de ${formatCOP(membership.price)}` : ''}
             . Si pagas en efectivo, acércate a recepción.
           </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-full border border-line px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-danger hover:text-danger"
+            >
+              Cancelar inscripción
+            </button>
+          </div>
         </>
       ) : (
         <>
