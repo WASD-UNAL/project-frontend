@@ -7,9 +7,11 @@ import type {
   MyMembership,
   PaymentHistoryItem,
   PaymentMethod,
+  PaymentStatus,
 } from '../../types/membership'
 import {
   cancelMembership,
+  confirmCheckout,
   createCheckout,
   enrollInPlan,
   getMyMembership,
@@ -53,6 +55,37 @@ const returnMessages: Record<string, Feedback> = {
   },
 }
 
+const confirmedMessages: Record<PaymentStatus, Feedback> = {
+  SUCCESSFUL: {
+    tone: 'ok',
+    text: '¡Tu pago fue aprobado y tu membresía ya está activa! No necesitas ninguna confirmación adicional.',
+  },
+  PENDING: {
+    tone: 'ok',
+    text: 'Estamos verificando tu pago con la pasarela. Si fue rechazado, tienes unos minutos para reintentarlo desde Mercado Pago antes de que la inscripción se cancele automáticamente.',
+  },
+  REJECTED: {
+    tone: 'error',
+    text: 'La pasarela rechazó tu pago y quedó registrado como rechazado en tu historial. Puedes inscribirte e intentarlo de nuevo cuando quieras.',
+  },
+}
+
+const CHECKOUT_POLL_INTERVAL_MS = 5000
+const CHECKOUT_POLL_ATTEMPTS = 48
+
+function parseMpPaymentId(params: URLSearchParams): number | null {
+  const raw = params.get('payment_id') ?? params.get('collection_id')
+  if (raw === null) return null
+  const id = Number(raw)
+  return Number.isFinite(id) && id > 0 ? id : null
+}
+
+function classifyMembership(membership: MyMembership): PaymentStatus {
+  if (membership.hasActiveMembership) return 'SUCCESSFUL'
+  if (membership.pendingApproval) return 'PENDING'
+  return 'REJECTED'
+}
+
 export function PaymentsSection() {
   const { profile } = useAuth()
   const [membership, setMembership] = useState<MyMembership | null>(null)
@@ -69,16 +102,19 @@ export function PaymentsSection() {
   const [enrollOpen, setEnrollOpen] = useState(enrollParam !== null)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  const paymentParam = searchParams.get('payment')
+  const [checkoutReturn] = useState(() => ({
+    outcome: searchParams.get('payment'),
+    mpPaymentId: parseMpPaymentId(searchParams),
+  }))
   const [feedback, setFeedback] = useState<Feedback | null>(
-    paymentParam ? (returnMessages[paymentParam] ?? null) : null,
+    checkoutReturn.outcome ? (returnMessages[checkoutReturn.outcome] ?? null) : null,
   )
 
   useEffect(() => {
-    if (paymentParam !== null) {
+    if (checkoutReturn.outcome !== null) {
       setSearchParams({}, { replace: true })
     }
-  }, [paymentParam, setSearchParams])
+  }, [checkoutReturn, setSearchParams])
 
   const closeEnroll = useCallback(() => {
     setEnrollOpen(false)
@@ -107,8 +143,51 @@ export function PaymentsSection() {
   }, [])
 
   useEffect(() => {
+    if (checkoutReturn.mpPaymentId !== null) return
     load()
-  }, [load])
+  }, [load, checkoutReturn])
+
+  useEffect(() => {
+    if (checkoutReturn.mpPaymentId === null) return
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const poll = async (attemptsLeft: number) => {
+      if (cancelled) return
+      try {
+        const [membershipData, paymentsData, plansData] = await Promise.all([
+          getMyMembership(),
+          getPaymentHistory(),
+          getActivePlans(),
+        ])
+        if (cancelled) return
+        setMembership(membershipData)
+        setPayments(paymentsData)
+        setPlans(plansData)
+        setLoading(false)
+
+        const status = classifyMembership(membershipData)
+        setFeedback(confirmedMessages[status])
+        if (status !== 'PENDING') return
+      } catch {
+        if (cancelled) return
+      }
+      if (attemptsLeft > 0) {
+        timer = setTimeout(() => poll(attemptsLeft - 1), CHECKOUT_POLL_INTERVAL_MS)
+      }
+    }
+
+    confirmCheckout(checkoutReturn.mpPaymentId)
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) poll(CHECKOUT_POLL_ATTEMPTS)
+      })
+
+    return () => {
+      cancelled = true
+      if (timer !== undefined) clearTimeout(timer)
+    }
+  }, [checkoutReturn])
 
   async function handleEnroll(planId: number, method: PaymentMethod) {
     setBusy(true)

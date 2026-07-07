@@ -41,6 +41,11 @@ export interface CheckoutResponse {
   checkoutUrl: string
 }
 
+export interface ConfirmCheckoutResult {
+  paymentId: number
+  status: PaymentStatus
+}
+
 export interface UserProfile {
   id: number
   name: string
