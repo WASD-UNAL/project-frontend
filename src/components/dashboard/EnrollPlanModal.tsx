@@ -70,8 +70,9 @@ export function EnrollPlanModal({
             Elige tu plan
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Selecciona un plan y tu método de pago. Con tarjeta o transferencia
-            te llevamos a MercadoPago; en efectivo pagas en recepción.
+            Selecciona un plan y tu método de pago. Con tarjeta te llevamos a
+            MercadoPago; en efectivo o transferencia el pago se confirma en
+            recepción.
           </p>
         </div>
 
@@ -153,13 +154,13 @@ export function EnrollPlanModal({
               className="rounded-full bg-ember px-6 py-2.5 text-sm font-bold tracking-wide text-bg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
             >
               {busy
-                ? method === 'CASH'
-                  ? 'Inscribiendo…'
-                  : 'Abriendo MercadoPago…'
+                ? method === 'CARD'
+                  ? 'Abriendo MercadoPago…'
+                  : 'Inscribiendo…'
                 : selected
-                  ? method === 'CASH'
-                    ? `Inscribirme · ${formatCOP(selected.price)}`
-                    : `Pagar · ${formatCOP(selected.price)}`
+                  ? method === 'CARD'
+                    ? `Pagar · ${formatCOP(selected.price)}`
+                    : `Inscribirme · ${formatCOP(selected.price)}`
                   : 'Inscribirme'}
             </button>
           </div>

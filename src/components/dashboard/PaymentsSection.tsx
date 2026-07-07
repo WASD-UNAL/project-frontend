@@ -118,11 +118,14 @@ export function PaymentsSection() {
       setMembership(updated)
       setPayments(await getPaymentHistory())
 
-      if (method === 'CASH') {
+      if (method === 'CASH' || method === 'TRANSFER') {
         closeEnroll()
         setFeedback({
           tone: 'ok',
-          text: 'Te inscribiste correctamente. Paga en recepción para confirmar tu membresía.',
+          text:
+            method === 'CASH'
+              ? 'Te inscribiste correctamente. Paga en recepción para confirmar tu membresía.'
+              : 'Te inscribiste correctamente. Realiza la transferencia y presenta el comprobante en recepción para confirmar tu membresía.',
         })
         return
       }
@@ -159,6 +162,7 @@ export function PaymentsSection() {
     try {
       const updated = await cancelMembership()
       setMembership(updated)
+      setPayments(await getPaymentHistory())
       setCancelOpen(false)
       setFeedback({
         tone: 'ok',
@@ -251,15 +255,16 @@ export function PaymentsSection() {
 
       <ConfirmModal
         open={cancelOpen}
-        title="¿Cancelar tu plan?"
+        title={membership?.pendingApproval ? '¿Cancelar tu inscripción?' : '¿Cancelar tu plan?'}
         confirmLabel="Sí, cancelar"
         destructive
         busy={busy}
         onConfirm={handleCancel}
         onClose={() => setCancelOpen(false)}
       >
-        Perderás el acceso al gimnasio al finalizar el día de hoy. Podrás volver
-        a inscribirte cuando quieras, pero tendrás que realizar un nuevo pago.
+        {membership?.pendingApproval
+          ? 'Se anulará tu inscripción pendiente de aprobación. Podrás inscribirte al mismo plan o a otro cuando quieras.'
+          : 'Perderás el acceso al gimnasio al finalizar el día de hoy. Podrás volver a inscribirte cuando quieras, pero tendrás que realizar un nuevo pago.'}
       </ConfirmModal>
     </div>
   )
