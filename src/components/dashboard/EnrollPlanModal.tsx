@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import type { AvailablePlan, PaymentMethod } from '../../types/membership'
 import { formatCOP } from '../../utils/currency'
+import { effectivePrice } from '../../utils/discount'
 import { paymentMethodLabel } from '../../utils/membership'
+import { PromoSticker } from '../common/PromoSticker'
 
 interface EnrollPlanModalProps {
   open: boolean
@@ -91,6 +93,14 @@ export function EnrollPlanModal({
                     : 'border-line bg-surface-soft hover:border-steel'
                 }`}
               >
+                {plan.discount && (
+                  <PromoSticker
+                    name={plan.discount.name}
+                    percentage={plan.discount.percentage}
+                    size="sm"
+                    className="mb-2 -rotate-1 self-start"
+                  />
+                )}
                 <div className="flex items-center justify-between">
                   <h3 className="font-display text-2xl tracking-wide text-ink">
                     {plan.name.toUpperCase()}
@@ -103,8 +113,15 @@ export function EnrollPlanModal({
                   {plan.description}
                 </p>
                 <p className="mt-3">
+                  {plan.discount && (
+                    <s className="block font-mono text-sm text-muted decoration-warn/70 decoration-2">
+                      <span className="sr-only">Antes </span>
+                      {formatCOP(plan.price)}
+                    </s>
+                  )}
                   <span className="font-mono text-2xl font-semibold text-ink">
-                    {formatCOP(plan.price)}
+                    {plan.discount && <span className="sr-only">Ahora </span>}
+                    {formatCOP(effectivePrice(plan))}
                   </span>
                   <span className="text-xs text-muted"> / mes</span>
                 </p>
@@ -159,8 +176,8 @@ export function EnrollPlanModal({
                   : 'Inscribiendo…'
                 : selected
                   ? method === 'CARD'
-                    ? `Pagar · ${formatCOP(selected.price)}`
-                    : `Inscribirme · ${formatCOP(selected.price)}`
+                    ? `Pagar · ${formatCOP(effectivePrice(selected))}`
+                    : `Inscribirme · ${formatCOP(effectivePrice(selected))}`
                   : 'Inscribirme'}
             </button>
           </div>

@@ -19,6 +19,7 @@ import {
 } from '../../services/membershipService'
 import { getActivePlans } from '../../services/planService'
 import { ApiError } from '../../services/apiClient'
+import { effectivePrice } from '../../utils/discount'
 import { useAuth } from '../../hooks/useAuth'
 import { MembershipStatusCard } from './MembershipStatusCard'
 import { PaymentHistoryList } from './PaymentHistoryList'
@@ -222,7 +223,7 @@ export function PaymentsSection() {
       const checkout = await createCheckout({
         membershipId: updated.membershipId,
         userId: profile.id,
-        amount: plan.price,
+        amount: effectivePrice(plan),
         method,
       })
       window.location.assign(checkout.checkoutUrl)

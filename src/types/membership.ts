@@ -28,12 +28,22 @@ export interface PaymentHistoryItem {
   createdAt: string | null
 }
 
+export interface PlanDiscount {
+  id: number
+  name: string
+  description: string | null
+  percentage: number
+  discountedPrice: number
+  endDate: string
+}
+
 export interface AvailablePlan {
   id: number
   name: string
   description: string | null
   durationDays: number
   price: number
+  discount?: PlanDiscount | null
 }
 
 export interface CheckoutResponse {
