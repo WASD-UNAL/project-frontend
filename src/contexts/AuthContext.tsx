@@ -11,6 +11,7 @@ interface AuthContextValue {
   role: string | null
   profileLoaded: boolean
   setToken: (token: string | null) => void
+  updateProfile: (profile: UserProfile) => void
   logout: () => void
 }
 
@@ -35,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setTokenState(next)
   }, [])
+
+  const updateProfile = useCallback((next: UserProfile) => setProfile(next), [])
 
   const logout = useCallback(() => setToken(null), [setToken])
 
@@ -65,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: profile?.role ?? null,
         profileLoaded,
         setToken,
+        updateProfile,
         logout,
       }}
     >

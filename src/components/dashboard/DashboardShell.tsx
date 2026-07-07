@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
-export type DashboardSection = 'payments' | 'attendance'
+export type DashboardSection = 'payments' | 'attendance' | 'profile'
 
 interface NavItem {
   key?: DashboardSection
@@ -21,7 +21,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { key: 'payments', label: 'Pagos', icon: CreditCard },
   { key: 'attendance', label: 'Asistencias', icon: CalendarCheck },
-  { label: 'Perfil', icon: User, soon: true },
+  { key: 'profile', label: 'Perfil', icon: User },
 ]
 
 interface DashboardShellProps {
