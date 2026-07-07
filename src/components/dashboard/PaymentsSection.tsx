@@ -152,8 +152,6 @@ export function PaymentsSection() {
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
 
-    confirmCheckout(checkoutReturn.mpPaymentId).catch(() => {})
-
     const poll = async (attemptsLeft: number) => {
       if (cancelled) return
       try {
@@ -179,7 +177,11 @@ export function PaymentsSection() {
       }
     }
 
-    poll(CHECKOUT_POLL_ATTEMPTS)
+    confirmCheckout(checkoutReturn.mpPaymentId)
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) poll(CHECKOUT_POLL_ATTEMPTS)
+      })
 
     return () => {
       cancelled = true
