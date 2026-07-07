@@ -22,6 +22,27 @@ function parseMetric(raw: string): number | null | 'invalid' {
   return n
 }
 
+interface BmiResult {
+  value: number
+  category: string
+  tone: 'ok' | 'warn'
+}
+
+function computeBmi(weightRaw: string, heightRaw: string): BmiResult | null {
+  const weight = parseMetric(weightRaw)
+  const height = parseMetric(heightRaw)
+  if (typeof weight !== 'number' || typeof height !== 'number') return null
+
+  const meters = height / 100
+  const value = weight / (meters * meters)
+  if (!Number.isFinite(value)) return null
+
+  if (value < 18.5) return { value, category: 'Bajo peso', tone: 'warn' }
+  if (value < 25) return { value, category: 'Peso saludable', tone: 'ok' }
+  if (value < 30) return { value, category: 'Sobrepeso', tone: 'warn' }
+  return { value, category: 'Obesidad', tone: 'warn' }
+}
+
 export function ProfileSection() {
   const { profile, updateProfile } = useAuth()
 
@@ -203,6 +224,8 @@ function PersonalInfoCard({
           </Field>
         </div>
 
+        <BmiCard bmi={computeBmi(form.weight, form.height)} />
+
         {feedback && <FeedbackBanner feedback={feedback} />}
 
         <div className="mt-6 flex justify-end">
@@ -337,6 +360,27 @@ function PasswordCard() {
         </div>
       </form>
     </section>
+  )
+}
+
+function BmiCard({ bmi }: { bmi: BmiResult | null }) {
+  if (!bmi) return null
+
+  return (
+    <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-xl border border-line bg-surface-soft px-4 py-3">
+      <span className="font-mono text-xs tracking-[0.25em] text-muted uppercase">
+        IMC
+      </span>
+      <span className="font-mono text-lg text-ink">{bmi.value.toFixed(1)}</span>
+      <span
+        className={`text-sm font-medium ${bmi.tone === 'ok' ? 'text-ember' : 'text-muted'}`}
+      >
+        {bmi.category}
+      </span>
+      <span className="text-xs text-muted">
+        Calculado con tu peso y estatura actuales.
+      </span>
+    </div>
   )
 }
 
