@@ -62,7 +62,7 @@ const confirmedMessages: Record<PaymentStatus, Feedback> = {
   },
   PENDING: {
     tone: 'ok',
-    text: 'Tu pago quedó en proceso. Te confirmaremos cuando la pasarela lo apruebe.',
+    text: 'Estamos verificando tu pago con la pasarela. Si fue rechazado, tienes unos minutos para reintentarlo desde Mercado Pago antes de que la inscripción se cancele automáticamente.',
   },
   REJECTED: {
     tone: 'error',
@@ -70,11 +70,20 @@ const confirmedMessages: Record<PaymentStatus, Feedback> = {
   },
 }
 
+const CHECKOUT_POLL_INTERVAL_MS = 5000
+const CHECKOUT_POLL_ATTEMPTS = 48
+
 function parseMpPaymentId(params: URLSearchParams): number | null {
   const raw = params.get('payment_id') ?? params.get('collection_id')
   if (raw === null) return null
   const id = Number(raw)
   return Number.isFinite(id) && id > 0 ? id : null
+}
+
+function classifyMembership(membership: MyMembership): PaymentStatus {
+  if (membership.hasActiveMembership) return 'SUCCESSFUL'
+  if (membership.pendingApproval) return 'PENDING'
+  return 'REJECTED'
 }
 
 export function PaymentsSection() {
@@ -134,22 +143,49 @@ export function PaymentsSection() {
   }, [])
 
   useEffect(() => {
+    if (checkoutReturn.mpPaymentId !== null) return
     load()
-  }, [load])
+  }, [load, checkoutReturn])
 
   useEffect(() => {
     if (checkoutReturn.mpPaymentId === null) return
-    confirmCheckout(checkoutReturn.mpPaymentId)
-      .then((result) => {
-        setFeedback(confirmedMessages[result.status])
-        return load()
-      })
-      .catch(() => {
-        if (checkoutReturn.outcome !== null) {
-          setFeedback(returnMessages[checkoutReturn.outcome] ?? null)
-        }
-      })
-  }, [checkoutReturn, load])
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    confirmCheckout(checkoutReturn.mpPaymentId).catch(() => {})
+
+    const poll = async (attemptsLeft: number) => {
+      if (cancelled) return
+      try {
+        const [membershipData, paymentsData, plansData] = await Promise.all([
+          getMyMembership(),
+          getPaymentHistory(),
+          getActivePlans(),
+        ])
+        if (cancelled) return
+        setMembership(membershipData)
+        setPayments(paymentsData)
+        setPlans(plansData)
+        setLoading(false)
+
+        const status = classifyMembership(membershipData)
+        setFeedback(confirmedMessages[status])
+        if (status !== 'PENDING') return
+      } catch {
+        if (cancelled) return
+      }
+      if (attemptsLeft > 0) {
+        timer = setTimeout(() => poll(attemptsLeft - 1), CHECKOUT_POLL_INTERVAL_MS)
+      }
+    }
+
+    poll(CHECKOUT_POLL_ATTEMPTS)
+
+    return () => {
+      cancelled = true
+      if (timer !== undefined) clearTimeout(timer)
+    }
+  }, [checkoutReturn])
 
   async function handleEnroll(planId: number, method: PaymentMethod) {
     setBusy(true)
