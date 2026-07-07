@@ -2,15 +2,23 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BarChart3,
+  ClipboardList,
   CreditCard,
   Dumbbell,
   LayoutDashboard,
   LogOut,
+  ScanLine,
   Users,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
-export type AdminSection = 'overview' | 'statistics' | 'members' | 'payments'
+export type AdminSection =
+  | 'overview'
+  | 'statistics'
+  | 'members'
+  | 'payments'
+  | 'plans'
+  | 'access'
 
 interface NavItem {
   key: AdminSection
@@ -23,6 +31,8 @@ const navItems: NavItem[] = [
   { key: 'statistics', label: 'Estadística', icon: BarChart3 },
   { key: 'members', label: 'Socios', icon: Users },
   { key: 'payments', label: 'Pagos', icon: CreditCard },
+  { key: 'plans', label: 'Planes', icon: ClipboardList },
+  { key: 'access', label: 'Acceso', icon: ScanLine },
 ]
 
 interface AdminShellProps {

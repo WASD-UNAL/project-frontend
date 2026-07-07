@@ -9,16 +9,15 @@ export interface AttendanceStatsResponse {
   points: StatPoint[]
 }
 
-export interface AttendanceEntry {
-  id: number
+export interface AttendanceVisit {
   date: string
-  checkIn: string
-  checkOut: string | null
-  durationMin: number | null
+  time: string | null
 }
 
 export interface MyAttendance {
   currentStreak: number
-  totalCount: number
-  entries: AttendanceEntry[]
+  longestStreak: number
+  totalDays: number
+  lastAttendanceDate: string | null
+  visits: AttendanceVisit[]
 }

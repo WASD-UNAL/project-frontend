@@ -11,7 +11,8 @@ const dateFmt = new Intl.DateTimeFormat('es-CO', {
 })
 
 export function formatDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
+  const [datePart] = iso.split('T')
+  const [y, m, d] = datePart.split('-').map(Number)
   return dateFmt.format(new Date(y, m - 1, d))
 }
 

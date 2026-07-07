@@ -1,4 +1,4 @@
-import { CalendarClock, CreditCard } from 'lucide-react'
+import { CalendarClock, Clock, CreditCard } from 'lucide-react'
 import type { MyMembership } from '../../types/membership'
 import { formatCOP } from '../../utils/currency'
 import { formatDate, statusThemes, totalDaysBetween } from '../../utils/membership'
@@ -9,13 +9,22 @@ interface MembershipStatusCardProps {
   onCancel: () => void
 }
 
+const pendingTheme = {
+  border: 'border-warn',
+  bgSoft: 'bg-warn-soft',
+  text: 'text-warn',
+  fill: 'bg-warn',
+  label: 'Pendiente',
+}
+
 export function MembershipStatusCard({
   membership,
   onEnroll,
   onCancel,
 }: MembershipStatusCardProps) {
-  const theme = statusThemes[membership.statusColor]
   const active = membership.hasActiveMembership
+  const pending = membership.pendingApproval
+  const theme = pending ? pendingTheme : statusThemes[membership.statusColor]
 
   let remainingPct = 0
   if (active && membership.initDate && membership.endDate) {
@@ -34,7 +43,7 @@ export function MembershipStatusCard({
             Tu membresía
           </p>
           <h2 className="mt-1 font-display text-4xl tracking-wide text-ink md:text-5xl">
-            {active && membership.planName
+            {(active || pending) && membership.planName
               ? `PLAN ${membership.planName.toUpperCase()}`
               : 'SIN PLAN ACTIVO'}
           </h2>
@@ -109,6 +118,21 @@ export function MembershipStatusCard({
               Cancelar plan
             </button>
           </div>
+        </>
+      ) : pending ? (
+        <>
+          <div className="mt-8 flex items-center gap-3">
+            <Clock className="size-6 shrink-0 text-warn" strokeWidth={1.75} />
+            <p className="font-display text-2xl tracking-wide text-ink">
+              Pago pendiente de aprobación
+            </p>
+          </div>
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-steel">
+            Registramos tu inscripción. Tu membresía se activará y verás los días
+            restantes en cuanto un administrador confirme el pago
+            {membership.price !== null ? ` de ${formatCOP(membership.price)}` : ''}
+            . Si pagas en efectivo, acércate a recepción.
+          </p>
         </>
       ) : (
         <>
