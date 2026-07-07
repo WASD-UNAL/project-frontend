@@ -81,12 +81,15 @@ export function DashboardShell({ active, onSelect, children }: DashboardShellPro
   return (
     <div className="min-h-[100dvh] bg-bg lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r border-line bg-surface lg:flex lg:flex-col">
-        <div className="flex items-center gap-2 border-b border-line px-6 py-5">
+        <Link
+          to="/"
+          className="flex items-center gap-2 border-b border-line px-6 py-5 transition-colors hover:bg-surface-soft"
+        >
           <Dumbbell className="size-6 text-ember" strokeWidth={2} />
           <span className="font-display text-2xl tracking-[0.2em] text-ink">
             Gymly
           </span>
-        </div>
+        </Link>
 
         <div className="flex-1 px-4 py-6">
           <NavList active={active} onSelect={onSelect} />
@@ -116,12 +119,12 @@ export function DashboardShell({ active, onSelect, children }: DashboardShellPro
       </aside>
 
       <header className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 lg:hidden">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <Dumbbell className="size-5 text-ember" strokeWidth={2} />
           <span className="font-display text-xl tracking-[0.2em] text-ink">
             Gymly
           </span>
-        </div>
+        </Link>
         <Link
           to="/"
           onClick={logout}
