@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { CalendarCheck, Flame, LogIn, Trophy } from 'lucide-react'
 import type { AttendanceVisit, MyAttendance } from '../../types/attendance'
 import { getMyAttendance } from '../../services/attendanceService'
+import { RefreshButton } from '../common/RefreshButton'
 
 const weekdayFmt = new Intl.DateTimeFormat('es-CO', { weekday: 'long' })
 const monthFmt = new Intl.DateTimeFormat('es-CO', { month: 'short' })
@@ -26,30 +27,33 @@ export function AttendanceSection() {
   const [data, setData] = useState<MyAttendance | null>(null)
   const [error, setError] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    getMyAttendance()
-      .then((res) => {
-        if (!cancelled) setData(res)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-    return () => {
-      cancelled = true
+  const load = useCallback(async () => {
+    try {
+      const res = await getMyAttendance()
+      setData(res)
+      setError(false)
+    } catch {
+      setError(true)
     }
   }, [])
 
+  useEffect(() => {
+    load()
+  }, [load])
+
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <div>
-        <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
-          ASISTENCIA
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Cada ingreso al gimnasio queda registrado cuando presentas tu
-          documento en recepción. Aquí ves tus visitas y tu racha.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
+            ASISTENCIA
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Cada ingreso al gimnasio queda registrado cuando presentas tu
+            documento en recepción. Aquí ves tus visitas y tu racha.
+          </p>
+        </div>
+        <RefreshButton onRefresh={load} />
       </div>
 
       {error ? (

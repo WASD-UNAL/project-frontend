@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import {
   CalendarRange,
@@ -21,6 +21,7 @@ import {
   getYearRevenue,
 } from '../../services/adminService'
 import { formatCOP } from '../../utils/currency'
+import { RefreshButton } from '../common/RefreshButton'
 
 const compactCOP = new Intl.NumberFormat('es-CO', {
   notation: 'compact',
@@ -63,36 +64,39 @@ export function StatisticsSection() {
   const [data, setData] = useState<ReportData | null>(null)
   const [error, setError] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
+  const load = useCallback(async () => {
     const now = new Date()
-    Promise.all([
-      getYearRevenue(now.getFullYear()),
-      getRevenueByPlan(now.getFullYear(), now.getMonth() + 1),
-      getRevenueComparison(),
-      getInactiveCustomers(),
-    ])
-      .then(([yearly, byPlan, comparison, inactive]) => {
-        if (!cancelled) setData({ yearly, byPlan, comparison, inactive })
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-    return () => {
-      cancelled = true
+    try {
+      const [yearly, byPlan, comparison, inactive] = await Promise.all([
+        getYearRevenue(now.getFullYear()),
+        getRevenueByPlan(now.getFullYear(), now.getMonth() + 1),
+        getRevenueComparison(),
+        getInactiveCustomers(),
+      ])
+      setData({ yearly, byPlan, comparison, inactive })
+      setError(false)
+    } catch {
+      setError(true)
     }
   }, [])
 
+  useEffect(() => {
+    load()
+  }, [load])
+
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <div>
-        <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
-          ESTADÍSTICA
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Ingresos reales del gimnasio: por mes, por plan y comparados con el
-          periodo anterior.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
+            ESTADÍSTICA
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Ingresos reales del gimnasio: por mes, por plan y comparados con el
+            periodo anterior.
+          </p>
+        </div>
+        <RefreshButton onRefresh={load} />
       </div>
 
       {error ? (

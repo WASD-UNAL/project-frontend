@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import {
   AlertCircle,
@@ -10,6 +10,7 @@ import type { StatPoint } from '../../types/attendance'
 import { computeAdminCounters, getAttendanceWeek } from '../../services/adminService'
 import { formatCOP } from '../../utils/currency'
 import { useAdminData } from '../../hooks/useAdminData'
+import { RefreshButton } from '../common/RefreshButton'
 
 interface Kpi {
   label: string
@@ -24,36 +25,44 @@ interface Attendance {
 }
 
 export function OverviewSection() {
-  const { members, membersError, payments, paymentsError } = useAdminData()
+  const { members, membersError, payments, paymentsError, refreshMembers, refreshPayments } =
+    useAdminData()
   const [attendance, setAttendance] = useState<Attendance | null>(null)
   const [attendanceError, setAttendanceError] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    getAttendanceWeek()
-      .then((data) => {
-        if (!cancelled) setAttendance({ points: data.points, peak: data.peakValue })
-      })
-      .catch(() => {
-        if (!cancelled) setAttendanceError(true)
-      })
-    return () => {
-      cancelled = true
+  const loadAttendance = useCallback(async () => {
+    try {
+      const data = await getAttendanceWeek()
+      setAttendance({ points: data.points, peak: data.peakValue })
+      setAttendanceError(false)
+    } catch {
+      setAttendanceError(true)
     }
   }, [])
+
+  useEffect(() => {
+    loadAttendance()
+  }, [loadAttendance])
+
+  const refresh = useCallback(async () => {
+    await Promise.all([refreshMembers(), refreshPayments(), loadAttendance()])
+  }, [refreshMembers, refreshPayments, loadAttendance])
 
   const error = membersError || paymentsError || attendanceError
   const counters = members && payments ? computeAdminCounters(members, payments) : null
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <div>
-        <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
-          RESUMEN
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Vista general del gimnasio: socios, ingresos y afluencia.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
+            RESUMEN
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Vista general del gimnasio: socios, ingresos y afluencia.
+          </p>
+        </div>
+        <RefreshButton onRefresh={refresh} />
       </div>
 
       {error ? (
