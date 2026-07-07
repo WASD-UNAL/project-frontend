@@ -5,6 +5,7 @@ import { DashboardShell } from '../components/dashboard/DashboardShell'
 import type { DashboardSection } from '../components/dashboard/DashboardShell'
 import { PaymentsSection } from '../components/dashboard/PaymentsSection'
 import { AttendanceSection } from '../components/dashboard/AttendanceSection'
+import { ProfileSection } from '../components/dashboard/ProfileSection'
 
 export function DashboardPage() {
   const { role, profileLoaded } = useAuth()
@@ -28,6 +29,7 @@ export function DashboardPage() {
     <DashboardShell active={section} onSelect={setSection}>
       {section === 'payments' && <PaymentsSection />}
       {section === 'attendance' && <AttendanceSection />}
+      {section === 'profile' && <ProfileSection />}
     </DashboardShell>
   )
 }

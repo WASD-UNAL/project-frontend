@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Check, X } from 'lucide-react'
 import type { AdminPaymentView } from '../../types/admin'
 import type { PaymentStatus } from '../../types/membership'
@@ -6,6 +6,7 @@ import { joinPaymentsWithMembers, setPaymentStatus } from '../../services/adminS
 import { formatCOP } from '../../utils/currency'
 import { formatDate, paymentMethodLabel, paymentStatusThemes } from '../../utils/membership'
 import { useAdminData } from '../../hooks/useAdminData'
+import { RefreshButton } from '../common/RefreshButton'
 
 type Filter = 'ALL' | PaymentStatus
 
@@ -26,10 +27,14 @@ interface Feedback {
 }
 
 export function PaymentsAdminSection() {
-  const { members, payments, paymentsError, refreshPayments } = useAdminData()
+  const { members, payments, paymentsError, refreshMembers, refreshPayments } = useAdminData()
   const [filter, setFilter] = useState<Filter>('PENDING')
   const [busyId, setBusyId] = useState<number | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
+
+  const refresh = useCallback(async () => {
+    await Promise.all([refreshMembers(), refreshPayments()])
+  }, [refreshMembers, refreshPayments])
 
   const paymentsWithMembers = useMemo(() => {
     if (!payments || !members) return null
@@ -72,13 +77,16 @@ export function PaymentsAdminSection() {
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <div>
-        <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
-          PAGOS
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Confirma o rechaza los pagos pendientes y revisa el historial.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl tracking-wide text-ink md:text-5xl">
+            PAGOS
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Confirma o rechaza los pagos pendientes y revisa el historial.
+          </p>
+        </div>
+        <RefreshButton onRefresh={refresh} />
       </div>
 
       {feedback && (

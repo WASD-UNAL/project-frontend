@@ -1,14 +1,26 @@
 import { api } from './apiClient'
 import type {
+  ChangePasswordInput,
   CheckoutResponse,
   MyMembership,
   PaymentHistoryItem,
   PaymentMethod,
+  UpdateProfileInput,
   UserProfile,
 } from '../types/membership'
 
 export function getMyProfile(): Promise<UserProfile> {
   return api.get<UserProfile>('/me/profile')
+}
+
+
+export function updateMyProfile(input: UpdateProfileInput): Promise<UserProfile> {
+  return api.put<UserProfile>('/me/profile', input)
+}
+
+
+export function changeMyPassword(input: ChangePasswordInput): Promise<void> {
+  return api.put<void>('/me/password', input)
 }
 
 

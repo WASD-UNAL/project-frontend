@@ -49,4 +49,21 @@ export interface UserProfile {
   document: string
   role: string
   active: boolean
+  phone?: string | null
+  weight?: number | null
+  height?: number | null
+}
+
+export interface UpdateProfileInput {
+  name?: string
+  lastname?: string
+  email?: string
+  phone?: string
+  weight?: number
+  height?: number
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string
+  newPassword: string
 }
