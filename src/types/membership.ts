@@ -7,6 +7,7 @@ export type PaymentStatus = 'SUCCESSFUL' | 'PENDING' | 'REJECTED'
 
 export interface MyMembership {
   hasActiveMembership: boolean
+  pendingApproval: boolean
   membershipId: number | null
   planId: number | null
   planName: string | null
