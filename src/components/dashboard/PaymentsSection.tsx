@@ -118,11 +118,14 @@ export function PaymentsSection() {
       setMembership(updated)
       setPayments(await getPaymentHistory())
 
-      if (method === 'CASH') {
+      if (method === 'CASH' || method === 'TRANSFER') {
         closeEnroll()
         setFeedback({
           tone: 'ok',
-          text: 'Te inscribiste correctamente. Paga en recepción para confirmar tu membresía.',
+          text:
+            method === 'CASH'
+              ? 'Te inscribiste correctamente. Paga en recepción para confirmar tu membresía.'
+              : 'Te inscribiste correctamente. Realiza la transferencia y presenta el comprobante en recepción para confirmar tu membresía.',
         })
         return
       }
