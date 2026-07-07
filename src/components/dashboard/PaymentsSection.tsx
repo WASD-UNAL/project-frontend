@@ -7,9 +7,11 @@ import type {
   MyMembership,
   PaymentHistoryItem,
   PaymentMethod,
+  PaymentStatus,
 } from '../../types/membership'
 import {
   cancelMembership,
+  confirmCheckout,
   createCheckout,
   enrollInPlan,
   getMyMembership,
@@ -53,6 +55,28 @@ const returnMessages: Record<string, Feedback> = {
   },
 }
 
+const confirmedMessages: Record<PaymentStatus, Feedback> = {
+  SUCCESSFUL: {
+    tone: 'ok',
+    text: '¡Tu pago fue aprobado y tu membresía ya está activa! No necesitas ninguna confirmación adicional.',
+  },
+  PENDING: {
+    tone: 'ok',
+    text: 'Tu pago quedó en proceso. Te confirmaremos cuando la pasarela lo apruebe.',
+  },
+  REJECTED: {
+    tone: 'error',
+    text: 'La pasarela rechazó tu pago y quedó registrado como rechazado en tu historial. Puedes inscribirte e intentarlo de nuevo cuando quieras.',
+  },
+}
+
+function parseMpPaymentId(params: URLSearchParams): number | null {
+  const raw = params.get('payment_id') ?? params.get('collection_id')
+  if (raw === null) return null
+  const id = Number(raw)
+  return Number.isFinite(id) && id > 0 ? id : null
+}
+
 export function PaymentsSection() {
   const { profile } = useAuth()
   const [membership, setMembership] = useState<MyMembership | null>(null)
@@ -69,16 +93,19 @@ export function PaymentsSection() {
   const [enrollOpen, setEnrollOpen] = useState(enrollParam !== null)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  const paymentParam = searchParams.get('payment')
+  const [checkoutReturn] = useState(() => ({
+    outcome: searchParams.get('payment'),
+    mpPaymentId: parseMpPaymentId(searchParams),
+  }))
   const [feedback, setFeedback] = useState<Feedback | null>(
-    paymentParam ? (returnMessages[paymentParam] ?? null) : null,
+    checkoutReturn.outcome ? (returnMessages[checkoutReturn.outcome] ?? null) : null,
   )
 
   useEffect(() => {
-    if (paymentParam !== null) {
+    if (checkoutReturn.outcome !== null) {
       setSearchParams({}, { replace: true })
     }
-  }, [paymentParam, setSearchParams])
+  }, [checkoutReturn, setSearchParams])
 
   const closeEnroll = useCallback(() => {
     setEnrollOpen(false)
@@ -109,6 +136,20 @@ export function PaymentsSection() {
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    if (checkoutReturn.mpPaymentId === null) return
+    confirmCheckout(checkoutReturn.mpPaymentId)
+      .then((result) => {
+        setFeedback(confirmedMessages[result.status])
+        return load()
+      })
+      .catch(() => {
+        if (checkoutReturn.outcome !== null) {
+          setFeedback(returnMessages[checkoutReturn.outcome] ?? null)
+        }
+      })
+  }, [checkoutReturn, load])
 
   async function handleEnroll(planId: number, method: PaymentMethod) {
     setBusy(true)

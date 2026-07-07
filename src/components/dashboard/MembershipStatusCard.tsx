@@ -129,10 +129,10 @@ export function MembershipStatusCard({
           </div>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-steel">
             Registramos tu inscripción. Tu membresía se activará y verás los días
-            restantes en cuanto un administrador confirme el pago
+            restantes en cuanto se confirme el pago
             {membership.price !== null ? ` de ${formatCOP(membership.price)}` : ''}
-            . Si pagas en efectivo o por transferencia, confirma el pago en
-            recepción.
+            . Los pagos con tarjeta se validan automáticamente; si pagas en
+            efectivo o por transferencia, confirma el pago en recepción.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button

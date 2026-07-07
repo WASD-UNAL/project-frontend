@@ -2,6 +2,7 @@ import { api } from './apiClient'
 import type {
   ChangePasswordInput,
   CheckoutResponse,
+  ConfirmCheckoutResult,
   MyMembership,
   PaymentHistoryItem,
   PaymentMethod,
@@ -57,4 +58,9 @@ export function createCheckout(input: {
     ...input,
     status: 'PENDING',
   })
+}
+
+
+export function confirmCheckout(mpPaymentId: number): Promise<ConfirmCheckoutResult> {
+  return api.post<ConfirmCheckoutResult>('/payments/checkout/confirm', { mpPaymentId })
 }
