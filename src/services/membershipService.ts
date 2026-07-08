@@ -48,6 +48,13 @@ export function cancelMembership(): Promise<MyMembership> {
 }
 
 
+export function changePaymentMethod(
+  paymentMethod: PaymentMethod,
+): Promise<MyMembership> {
+  return api.patch<MyMembership>('/me/membership/payment-method', { paymentMethod })
+}
+
+
 export function createCheckout(input: {
   membershipId: number
   userId: number

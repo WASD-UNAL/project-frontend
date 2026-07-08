@@ -11,6 +11,7 @@ import type {
 } from '../../types/membership'
 import {
   cancelMembership,
+  changePaymentMethod,
   confirmCheckout,
   createCheckout,
   enrollInPlan,
@@ -24,6 +25,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { MembershipStatusCard } from './MembershipStatusCard'
 import { PaymentHistoryList } from './PaymentHistoryList'
 import { EnrollPlanModal } from './EnrollPlanModal'
+import { ChangeMethodModal } from './ChangeMethodModal'
 import { ConfirmModal } from './ConfirmModal'
 
 interface Feedback {
@@ -102,6 +104,7 @@ export function PaymentsSection() {
 
   const [enrollOpen, setEnrollOpen] = useState(enrollParam !== null)
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [changeMethodOpen, setChangeMethodOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [checkoutReturn] = useState(() => ({
     outcome: searchParams.get('payment'),
@@ -236,6 +239,49 @@ export function PaymentsSection() {
     setBusy(false)
   }
 
+  async function handleChangeMethod(method: PaymentMethod) {
+    setBusy(true)
+    setFeedback(null)
+    try {
+      if (method === 'CARD') {
+        if (membership?.membershipId == null || membership.price == null || profile == null) {
+          setFeedback({
+            tone: 'error',
+            text: 'No pudimos generar el enlace de pago. Actualiza la página e inténtalo de nuevo.',
+          })
+          setChangeMethodOpen(false)
+          setBusy(false)
+          return
+        }
+        const checkout = await createCheckout({
+          membershipId: membership.membershipId,
+          userId: profile.id,
+          amount: membership.price,
+          method,
+        })
+        window.location.assign(checkout.checkoutUrl)
+        return
+      }
+
+      const updated = await changePaymentMethod(method)
+      setMembership(updated)
+      setPayments(await getPaymentHistory())
+      setChangeMethodOpen(false)
+      setFeedback({
+        tone: 'ok',
+        text:
+          method === 'CASH'
+            ? 'Cambiamos tu método a efectivo. Paga en recepción para confirmar tu membresía.'
+            : 'Cambiamos tu método a transferencia. Realiza la transferencia y presenta el comprobante en recepción para confirmar tu membresía.',
+      })
+    } catch (error) {
+      setChangeMethodOpen(false)
+      setFeedback({ tone: 'error', text: messageFor(error) })
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function handleCancel() {
     setBusy(true)
     setFeedback(null)
@@ -313,6 +359,7 @@ export function PaymentsSection() {
               membership={membership}
               onEnroll={() => setEnrollOpen(true)}
               onCancel={() => setCancelOpen(true)}
+              onChangeMethod={() => setChangeMethodOpen(true)}
             />
           </div>
           <div
@@ -331,6 +378,14 @@ export function PaymentsSection() {
         busy={busy}
         onEnroll={handleEnroll}
         onClose={closeEnroll}
+      />
+
+      <ChangeMethodModal
+        key={changeMethodOpen ? 'open' : 'closed'}
+        open={changeMethodOpen}
+        busy={busy}
+        onConfirm={handleChangeMethod}
+        onClose={() => setChangeMethodOpen(false)}
       />
 
       <ConfirmModal

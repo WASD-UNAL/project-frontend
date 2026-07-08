@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, X } from 'lucide-react'
 import type { AdminPaymentView } from '../../types/admin'
 import type { PaymentStatus } from '../../types/membership'
@@ -9,6 +9,8 @@ import { useAdminData } from '../../hooks/useAdminData'
 import { RefreshButton } from '../common/RefreshButton'
 
 type Filter = 'ALL' | PaymentStatus
+
+const PAYMENTS_REFRESH_INTERVAL_MS = 15000
 
 const filters: { key: Filter; label: string }[] = [
   { key: 'ALL', label: 'Todos' },
@@ -35,6 +37,13 @@ export function PaymentsAdminSection() {
   const refresh = useCallback(async () => {
     await Promise.all([refreshMembers(), refreshPayments()])
   }, [refreshMembers, refreshPayments])
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshPayments()
+    }, PAYMENTS_REFRESH_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [refreshPayments])
 
   const paymentsWithMembers = useMemo(() => {
     if (!payments || !members) return null

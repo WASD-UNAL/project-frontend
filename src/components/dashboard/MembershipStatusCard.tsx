@@ -7,6 +7,7 @@ interface MembershipStatusCardProps {
   membership: MyMembership
   onEnroll: () => void
   onCancel: () => void
+  onChangeMethod: () => void
 }
 
 const pendingTheme = {
@@ -21,6 +22,7 @@ export function MembershipStatusCard({
   membership,
   onEnroll,
   onCancel,
+  onChangeMethod,
 }: MembershipStatusCardProps) {
   const active = membership.hasActiveMembership
   const pending = membership.pendingApproval
@@ -135,6 +137,13 @@ export function MembershipStatusCard({
             efectivo o por transferencia, confirma el pago en recepción.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={onChangeMethod}
+              className="rounded-full bg-ember px-5 py-2.5 text-sm font-bold tracking-wide text-bg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Cambiar método de pago
+            </button>
             <button
               type="button"
               onClick={onCancel}

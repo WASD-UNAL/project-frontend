@@ -20,6 +20,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem(TOKEN_KEY)
   const headers = new Headers(options.headers)
   headers.set('Content-Type', 'application/json')
+  headers.set('ngrok-skip-browser-warning', 'true')
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
