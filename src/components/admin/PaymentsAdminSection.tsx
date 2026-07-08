@@ -37,9 +37,7 @@ export function PaymentsAdminSection() {
   const refresh = useCallback(async () => {
     await Promise.all([refreshMembers(), refreshPayments()])
   }, [refreshMembers, refreshPayments])
-
-  // Refresco periódico: los pagos con tarjeta que MercadoPago confirma vía webhook
-  // cambian de estado en el backend; así el admin ve el estado actualizado sin recargar.
+  
   useEffect(() => {
     const interval = setInterval(() => {
       refreshPayments()
