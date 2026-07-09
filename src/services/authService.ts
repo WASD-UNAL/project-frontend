@@ -25,9 +25,6 @@ export function register(credentials: RegisterCredentials): Promise<AuthResult> 
   return api.post<AuthResult>('/auth/register', credentials)
 }
 
-// Lee el claim `role` del JWT sin verificarlo (solo para decidir la ruta de
-// aterrizaje tras el login; la autorización real la aplica el backend). Es
-// instantáneo y no depende de una segunda llamada de red.
 export function roleFromToken(token: string): string | null {
   try {
     const payload = token.split('.')[1]
